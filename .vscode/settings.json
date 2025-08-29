@@ -1,0 +1,11 @@
+{
+  "python.defaultInterpreterPath": ".venv\\Scripts\\python.exe",
+  "python.analysis.typeCheckingMode": "basic",
+  "files.insertFinalNewline": true,
+  "editor.formatOnSave": true,
+  "cSpell.words": [
+    "dateutil"
+  ],
+  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "python-envs.pythonProjects": []
+}

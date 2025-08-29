@@ -1,0 +1,73 @@
+## cSpell:ignore yfinance
+# cSpell:ignore fomc
+# filepath: c:\Users\techn\Desktop\Echo ai\echo\config.yaml
+timezone: America/Chicago
+
+slots:
+  core: QQQ
+  momentum: TSLA
+  wildcard: AMZN
+
+risk:
+  cash_buffer_percent: 5
+  max_risk_per_trade_usd: 75
+  max_slot_risk_usd: 100
+  kill_switch_drawdown_30d_pct: 20
+  loan_stop_pct: -6
+
+loan_accelerator:
+  enabled: true
+  min_expected_two_week_net_pct: 12
+  deploy_fraction: 0.55
+  min_repayment_odds: 0.75
+  allow_dual: true
+  loan_cap_usd: 500
+
+injections:
+  weekly_usd: 150
+  timing: smart
+  tom_preference: true
+
+providers:
+  price_data:
+    name: yfinance
+
+calendar:
+  fomc_dates: ["2025-09-17"]
+  earnings:
+    AMZN: "2025-10-29"
+    TSLA: "2025-10-15"
+
+whispers:
+  AMZN:
+    consensus_eps: 1.05
+    whisper_eps: 1.18
+  TSLA:
+    consensus_eps: 0.62
+    whisper_eps: 0.65
+
+sector_etfs:
+  TECH: XLK
+  DISCRETIONARY: XLY
+  SEMIS: SOXX
+  DEFENSE: ITA
+  RETAIL: XRT
+  ENERGY: XLE
+
+reporting:
+  out_dir: reports
+  include_weekly_dashboard: true
+  severity_colors: true
+rr_heatmap:
+  green_min: 1.5
+  yellow_min: 1.0
+  red_max: 1.0
+  stop_pct: 5
+  target_pct: 10
+loan_heat_map:
+  active_min: 70
+  watch_min: 30
+  color_bands:
+    active: green
+    watch: yellow
+    standby: gray

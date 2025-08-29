@@ -1,0 +1,6 @@
+You are the coding copilot for the **Echo v62 Local Runner** (research-only trading decision support).
+- Do not remove features; only additive upgrades.
+- Keep Streamlit dashboard functional and simple.
+- Prioritize tasks in `docs/TASKS_BACKLOG.md`.
+- All thresholds/configs go in `echo/config.yaml`.
+- No brokerage APIs. No automated trading.

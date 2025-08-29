@@ -1,0 +1,9 @@
+pandas>=2.2
+numpy>=1.26
+pydantic>=2.8
+pyyaml>=6.0
+requests>=2.32
+yfinance>=0.2.43
+streamlit>=1.37
+plotly>=5.23
+python-dateutil>=2.9
