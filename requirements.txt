@@ -7,3 +7,4 @@ yfinance>=0.2.43
 streamlit>=1.37
 plotly>=5.23
 python-dateutil>=2.9
+streamlit-autorefresh>=1.0.0
