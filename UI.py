@@ -1,10 +1,11 @@
-import sys
-import os
+import streamlit as st
 
-# Change to the echo directory so relative imports work
-echo_dir = os.path.join(os.path.dirname(__file__), 'echo')
-os.chdir(echo_dir)
-sys.path.insert(0, echo_dir)
+st.title("Echo AI Dashboard")
+st.write("Loading dashboard...")
 
-# Now import and run the main app
-import app_streamlit
+# Simple test to make sure Streamlit works
+st.success("✅ Streamlit is working!")
+st.info("🔄 Dashboard will load here...")
+
+# For now, just show a placeholder
+st.write("Dashboard content will appear here when fully deployed.")
