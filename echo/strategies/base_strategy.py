@@ -188,7 +188,8 @@ class BaseStrategy(ABC):
                       exit_time: datetime, reason: str = "signal") -> Trade:
         """Close an existing position."""
         pnl = position.unrealized_pnl(exit_price)
-        pnl_percent = (pnl / (position.entry_price * position.quantity)) * 100
+        position_value = position.entry_price * position.quantity
+        pnl_percent = (pnl / position_value * 100) if position_value > 0 else 0
         
         trade = Trade(
             ticker=position.ticker,

@@ -9,6 +9,10 @@ from typing import Dict, Optional, Protocol
 import pandas as pd
 from enum import Enum
 import os
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 class ProviderType(Enum):
@@ -106,7 +110,7 @@ class MultiProviderManager:
                 provider = ProviderFactory.create_provider(provider_type)
                 self.providers.append((provider_type, provider))
             except Exception as e:
-                print(f"Warning: Could not initialize provider {provider_type}: {e}")
+                logger.warning(f"Could not initialize provider {provider_type}: {e}")
         
         if not self.providers:
             raise RuntimeError("No data providers could be initialized")
@@ -131,7 +135,7 @@ class MultiProviderManager:
                 return provider.quote(ticker)
             except Exception as e:
                 last_error = e
-                print(f"Provider {provider_name} failed for {ticker}: {e}")
+                logger.warning(f"Provider {provider_name} failed for {ticker}: {e}")
         
         raise RuntimeError(f"All providers failed to fetch quote for {ticker}: {last_error}")
     
@@ -157,6 +161,6 @@ class MultiProviderManager:
                 return provider.history(ticker, period, interval)
             except Exception as e:
                 last_error = e
-                print(f"Provider {provider_name} failed for {ticker}: {e}")
+                logger.warning(f"Provider {provider_name} failed for {ticker}: {e}")
         
         raise RuntimeError(f"All providers failed to fetch history for {ticker}: {last_error}")

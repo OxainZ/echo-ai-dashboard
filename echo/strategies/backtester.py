@@ -179,15 +179,21 @@ class Backtester:
         if quantity <= 0:
             return
         
-        # Apply commission
-        cost = price * quantity
-        commission_cost = cost * self.commission
+        # Calculate costs
+        position_value = price * quantity
+        commission_cost = position_value * self.commission
         
-        if self.strategy.capital < (cost + commission_cost):
-            return  # Not enough capital
-        
-        # Deduct cost and commission
-        self.strategy.capital -= (cost + commission_cost)
+        # For long: pay cash + commission
+        # For short: receive cash - commission
+        if position_type == PositionType.LONG:
+            total_cost = position_value + commission_cost
+            if self.strategy.capital < total_cost:
+                return  # Not enough capital
+            self.strategy.capital -= total_cost
+        else:  # SHORT
+            # When shorting, we receive cash minus commission
+            net_proceeds = position_value - commission_cost
+            self.strategy.capital += net_proceeds
         
         # Open position
         self.strategy.open_position(ticker, position_type, price, quantity, time)
@@ -195,12 +201,18 @@ class Backtester:
     def _execute_exit(self, position: Position, price: float, 
                      time: datetime, reason: str) -> None:
         """Execute a position exit."""
-        # Calculate proceeds
-        proceeds = price * position.quantity
-        commission_cost = proceeds * self.commission
+        # Calculate proceeds/cost
+        position_value = price * position.quantity
+        commission_cost = position_value * self.commission
         
-        # Add proceeds minus commission
-        self.strategy.capital += (proceeds - commission_cost)
+        # For long: sell and receive cash - commission
+        # For short: buy back and pay cash + commission
+        if position.is_long:
+            net_proceeds = position_value - commission_cost
+            self.strategy.capital += net_proceeds
+        else:  # SHORT
+            total_cost = position_value + commission_cost
+            self.strategy.capital -= total_cost
         
         # Close position
         self.strategy.close_position(position, price, time, reason)
@@ -210,8 +222,10 @@ class Backtester:
         equity = self.strategy.capital
         
         for position in self.strategy.positions:
-            unrealized_pnl = position.unrealized_pnl(current_price)
-            equity += unrealized_pnl + (position.entry_price * position.quantity)
+            # For long: equity += current_value
+            # For short: equity += cash_received - current_liability
+            position_value = current_price * position.quantity
+            equity += position_value
         
         return equity
     
