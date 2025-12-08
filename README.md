@@ -89,10 +89,13 @@ A comprehensive, professional-grade trading intelligence platform featuring real
 
 2. **Configure Secrets** (in Streamlit Cloud dashboard)
    ```toml
-   password_hash = "c3499c2729730a7f807efb8676a92dcb6f8a3f8f0675b84d7f3142c3c7"
+   # Generate a password hash using Python:
+   # import hashlib
+   # hashlib.sha256("your_password".encode()).hexdigest()
+   password_hash = "your_generated_hash_here"
    ```
 
-3. **Default Access Code**: `echo2024`
+3. **Security Note**: Never commit sensitive credentials to the repository. Use environment variables or Streamlit secrets management.
 
 ### **Local Development**
 

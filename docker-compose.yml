@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  echo-ai-dashboard:
+    build: .
+    container_name: echo-ai-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - DEBUG=${DEBUG:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - TIMEZONE=${TIMEZONE:-America/Chicago}
+    env_file:
+      - .env
+    volumes:
+      # Mount configuration
+      - ./echo/config.yaml:/app/echo/config.yaml:ro
+      # Mount reports directory for persistence
+      - ./reports:/app/reports
+      # Mount logs directory
+      - ./logs:/app/logs
+      # Mount models directory
+      - ./models:/app/models
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - echo-network
+
+networks:
+  echo-network:
+    driver: bridge
