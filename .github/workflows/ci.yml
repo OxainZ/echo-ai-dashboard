@@ -6,10 +6,16 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+# Default permissions for all jobs
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint Code
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       
@@ -35,6 +41,8 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12']
@@ -69,11 +77,16 @@ jobs:
           file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
+          fail_ci_if_error: false  # Don't fail if codecov upload fails
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}  # Optional: configure in repository secrets
         continue-on-error: true
 
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       
@@ -102,6 +115,8 @@ jobs:
     name: Build Check
     runs-on: ubuntu-latest
     needs: [lint, test]
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       
@@ -131,6 +146,8 @@ jobs:
   docs:
     name: Documentation Check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       

@@ -154,9 +154,9 @@ class FinancialDataPreprocessor:
         df = df.copy()
         
         if method == 'ffill':
-            df = df.fillna(method='ffill')
+            df = df.ffill()  # Updated to use ffill() instead of fillna(method='ffill')
         elif method == 'bfill':
-            df = df.fillna(method='bfill')
+            df = df.bfill()  # Updated to use bfill() instead of fillna(method='bfill')
         elif method == 'interpolate':
             df = df.interpolate(method='linear')
         else:
