@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  echo-ai-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: echo-ai-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - APP_ENV=production
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./models:/app/models
+      - ./reports:/app/reports
+      - ./.streamlit:/app/.streamlit
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - echo-network
+
+  # Optional: Redis for caching (uncomment to enable)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: echo-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis-data:/data
+  #   restart: unless-stopped
+  #   networks:
+  #     - echo-network
+
+networks:
+  echo-network:
+    driver: bridge
+
+# Uncomment if using Redis
+# volumes:
+#   redis-data:
