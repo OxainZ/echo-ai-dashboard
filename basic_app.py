@@ -1,3 +1,17 @@
+"""
+Basic Echo AI Dashboard Application
+
+This module provides a simplified version of the Echo AI dashboard without authentication.
+Intended for development, testing, and demonstration purposes.
+
+Features:
+- Real-time market analysis
+- Signal monitoring
+- Portfolio tracking
+- Auto-refresh functionality
+
+Note: This version has no authentication. For production use, see UI.py
+"""
 from __future__ import annotations
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
@@ -11,8 +25,18 @@ import os
 # Add current directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# ==================== NO AUTHENTICATION VERSION ====================
+# ==================== BASIC DASHBOARD (NO AUTHENTICATION) ====================
 def main():
+    """
+    Main function for the basic Echo AI dashboard.
+    
+    Displays a simplified dashboard with:
+    - Market signals
+    - Portfolio allocations
+    - Recommended actions
+    
+    Auto-refreshes every 30 seconds for real-time updates.
+    """
     # Basic page config
     st.set_page_config(
         page_title="Echo AI Dashboard",
@@ -39,6 +63,7 @@ def main():
         # Load configuration
         cfg_path = "echo/config.yaml"
         if os.path.exists(cfg_path):
+            # Initialize Echo Engine with configuration
             eng = EchoEngine(cfg_path)
             verdict = eng.run()
             cfg = eng.config
