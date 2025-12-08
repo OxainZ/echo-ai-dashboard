@@ -1,240 +1,361 @@
 # 🚀 Echo AI Trading Intelligence Platform
 
-## Advanced Trading Dashboard with Real-time Analytics
+## AI-Powered Trading Dashboard with Continuous Learning
 
-A comprehensive, professional-grade trading intelligence platform featuring real-time market signals, risk analytics, portfolio management, and advanced visualization capabilities.
+A sophisticated, professional-grade trading intelligence platform featuring **AI/ML models**, real-time market analytics, autonomous decision-making, and continuous learning capabilities. Built with Python, Streamlit, and TensorFlow.
+
+---
+
+## ⚠️ IMPORTANT DISCLAIMER
+
+**This software is provided for EDUCATIONAL and RESEARCH purposes only.**
+
+- ❌ NOT financial advice
+- ❌ NOT a recommendation to buy, sell, or hold any securities
+- ❌ Past performance does NOT guarantee future results
+- ✅ Users assume ALL risks
+- ✅ Please read [ETHICAL_USAGE.md](ETHICAL_USAGE.md) before using
+
+---
 
 ## ✨ Key Features
 
-### 🔐 **Secure Authentication**
-- Password-protected access with hashed credentials
-- Session-based security management
-- Configurable access codes
+### 🤖 **AI/ML Models**
+- **LSTM Networks** - Time series prediction for stock prices
+- **Transformer Models** - Pattern recognition and trend analysis
+- **Reinforcement Learning** - Adaptive trading strategy optimization
+- **Continuous Learning** - Models update with new data automatically
+- **Memory Persistence** - Training history and model state saved between sessions
 
-### 📊 **Dashboard Overview**
-- **Composite Conviction Score** - Overall market confidence indicator
-- **Risk Level Assessment** - Real-time risk evaluation
-- **Capital Efficiency Metrics** - Portfolio utilization tracking
-- **Active Signal Monitoring** - Critical market signal alerts
+### 📊 **Advanced Data Integration**
+- **Multiple Data Providers**:
+  - Yahoo Finance (real-time quotes)
+  - Alpha Vantage (comprehensive market data)
+  - Quandl/NASDAQ Data Link (economic indicators)
+- **Technical Indicators**:
+  - RSI, MACD, Bollinger Bands
+  - Moving Averages (SMA, EMA)
+  - Stochastic Oscillator, ATR
+  - Volume indicators (OBV)
+- **Automated Preprocessing**:
+  - Data cleaning and validation
+  - Feature engineering
+  - Normalization and scaling
 
-### 📡 **Signal Analysis**
-- **Multi-signal Processing** - Bullish, caution, and bearish signals
-- **Signal Scoring System** - 0-100 confidence scoring
-- **Visual Signal Classification** - Color-coded signal indicators
-- **Detailed Signal Breakdown** - Comprehensive signal explanations
+### 🎯 **Intelligent Trading Decisions**
+- **AI-Powered Signals** - BUY/SELL/HOLD recommendations
+- **Risk Management**:
+  - Automatic stop-loss calculation
+  - Take-profit targets
+  - Position sizing optimization
+  - Portfolio risk assessment
+- **Backtesting Framework** - Test strategies on historical data
+- **Real-time Decision Engine** - Combines AI predictions with technical analysis
 
-### 💼 **Portfolio Management**
-- **Multi-slot Allocation** - Core, Momentum, and Wildcard positions
-- **Real-time Position Tracking** - Live portfolio monitoring
-- **Allocation Optimization** - Dynamic position sizing
+### 📈 **Interactive Dashboard**
+- **Real-time Predictions** - 5-day forecast with confidence intervals
+- **Model Performance Tracking** - Accuracy, precision, recall, Sharpe ratio
+- **Learning Progress Visualization** - Training curves and metrics
+- **Feature Importance Analysis** - Understand what drives predictions
+- **Risk/Reward Heatmaps** - Visual portfolio risk assessment
+- **Historical Performance** - Comprehensive backtesting results
 
-### ⚠️ **Risk Analytics**
-- **Risk/Reward Heatmap** - Visual risk assessment matrix
-- **Volatility Analysis** - Annual volatility calculations
-- **Sharpe Ratio Tracking** - Risk-adjusted return metrics
-- **Drawdown Analysis** - Maximum drawdown monitoring
+### 🔒 **Security & Compliance**
+- **Environment Variable Management** - Secure API key storage
+- **No Hardcoded Secrets** - All sensitive data externalized
+- **Audit Logging** - Track all system activities
+- **Ethical Guidelines** - Comprehensive usage guidelines
+- **CI/CD Security Scanning** - Automated vulnerability detection
 
-### 📈 **Historical Performance**
-- **3-Month Price Charts** - Interactive price visualization
-- **Performance Statistics** - Comprehensive return analysis
-- **Tabular Data Views** - Organized historical data
-- **Multi-asset Comparison** - Side-by-side performance analysis
+---
 
-### ⚙️ **Advanced Settings**
-- **Configurable Refresh Rates** - 5s to 5min intervals
-- **Export Functionality** - Data export capabilities
-- **System Information** - Version and status tracking
+## 🛠️ Installation
 
-## 🎨 **Enhanced UI/UX**
+### Prerequisites
+- Python 3.9, 3.10, or 3.11
+- pip package manager
+- Git
 
-### **Professional Design**
-- **Gradient Headers** - Modern visual design
-- **Card-based Layout** - Organized information display
-- **Responsive Metrics** - Dynamic KPI visualization
-- **Color-coded Alerts** - Priority-based visual cues
+### Quick Start
 
-### **Interactive Navigation**
-- **Sidebar Navigation** - Intuitive menu system
-- **Tabbed Interface** - Organized content sections
-- **Expandable Sections** - Detailed information on demand
-- **Real-time Updates** - Auto-refresh capabilities
-
-## 🛠️ **Technical Architecture**
-
-### **Core Technologies**
-- **Streamlit** - Modern web application framework
-- **Pandas/NumPy** - Data processing and analysis
-- **Yahoo Finance API** - Real-time market data
-- **Plotly** - Interactive visualizations
-
-### **Security Features**
-- **SHA-256 Password Hashing** - Secure credential storage
-- **Session Management** - Secure user sessions
-- **Input Validation** - Data integrity protection
-
-### **Performance Optimizations**
-- **Auto-refresh System** - Configurable update intervals
-- **Caching Mechanisms** - Efficient data retrieval
-- **Error Handling** - Robust exception management
-
-## 🚀 **Deployment Instructions**
-
-### **Streamlit Cloud Deployment**
-
-1. **Connect Repository**
-   ```
-   Repository: https://github.com/OxainZ/echo-ai-dashboard
-   Main File Path: UI.py
-   ```
-
-2. **Configure Secrets** (in Streamlit Cloud dashboard)
-   ```toml
-   password_hash = "c3499c2729730a7f807efb8676a92dcb6f8a3f8f0675b84d7f3142c3c7"
-   ```
-
-3. **Default Access Code**: `echo2024`
-
-### **Local Development**
-
-1. **Clone Repository**
+1. **Clone the Repository**
    ```bash
    git clone https://github.com/OxainZ/echo-ai-dashboard.git
    cd echo-ai-dashboard
    ```
 
-2. **Install Dependencies**
+2. **Create Virtual Environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install Dependencies**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Configure Environment**
+4. **Configure Environment Variables**
    ```bash
-   # Copy and edit secrets
-   cp .streamlit/secrets.toml .streamlit/secrets.toml.local
-   # Edit password_hash as needed
+   cp .env.example .env
+   # Edit .env and add your API keys
    ```
 
-4. **Run Application**
+5. **Run the Dashboard**
    ```bash
    streamlit run UI.py
    ```
 
-## 📋 **Requirements**
+---
 
-```
-pandas>=2.2
-numpy>=1.26
-pydantic>=2.8
-pyyaml>=6.0
-requests>=2.32
-yfinance>=0.2.43
-streamlit>=1.37
-plotly>=5.23
-python-dateutil>=2.9
-streamlit-autorefresh>=1.0.0
-```
+## 🔑 Configuration
 
-## 🔧 **Configuration**
+### API Keys Required
 
-### **Dashboard Settings**
-- Edit `echo/config.yaml` for market data sources
-- Modify `.streamlit/config.toml` for Streamlit settings
-- Update `.streamlit/secrets.toml` for authentication
+Add these to your `.env` file:
 
-### **Customization Options**
-- **Refresh Intervals**: 5 seconds to 5 minutes
-- **Risk Thresholds**: Configurable risk levels
-- **Signal Parameters**: Adjustable signal sensitivity
-- **UI Themes**: Customizable color schemes
-
-## 📊 **Data Sources**
-
-### **Primary Data Provider**
-- **Yahoo Finance API** - Real-time market data
-- **3-month historical data** - Performance analysis
-- **Daily interval updates** - Intraday monitoring
-
-### **Signal Processing**
-- **Technical Indicators** - Momentum, volatility, volume
-- **Statistical Analysis** - Sharpe ratios, drawdowns
-- **Risk Metrics** - Value at risk, beta calculations
-
-## 🔒 **Security Features**
-
-### **Authentication System**
-- **Hashed Password Storage** - SHA-256 encryption
-- **Session Management** - Secure user sessions
-- **Input Sanitization** - XSS protection
-
-### **Data Protection**
-- **No Data Persistence** - Stateless architecture
-- **API Rate Limiting** - Controlled data access
-- **Error Masking** - Secure error handling
-
-## 📈 **Performance Metrics**
-
-### **System Performance**
-- **Auto-refresh**: 5-second intervals
-- **Data Processing**: Sub-second analysis
-- **Memory Usage**: Optimized data structures
-- **API Calls**: Efficient batch processing
-
-### **User Experience**
-- **Load Time**: <3 seconds initial load
-- **Refresh Speed**: <1 second updates
-- **Responsiveness**: Mobile-optimized design
-- **Accessibility**: WCAG compliant interface
-
-## 🐛 **Troubleshooting**
-
-### **Common Issues**
-1. **Import Errors**: Check Python path configuration
-2. **Data Loading**: Verify internet connectivity
-3. **Authentication**: Confirm password hash configuration
-4. **Performance**: Check system resources
-
-### **Debug Mode**
 ```bash
-streamlit run UI.py --logger.level=debug
+# Data Provider API Keys
+ALPHA_VANTAGE_API_KEY=your_key_here
+QUANDL_API_KEY=your_key_here
+
+# Optional: Yahoo Finance (usually works without key)
+YAHOO_FINANCE_API_KEY=optional
+
+# Dashboard Authentication
+PASSWORD_HASH=your_hashed_password_here
 ```
 
-## 🤝 **Contributing**
+### Getting API Keys
 
-### **Development Setup**
-1. Fork the repository
-2. Create feature branch
-3. Implement enhancements
-4. Submit pull request
+- **Alpha Vantage**: [Get Free API Key](https://www.alphavantage.co/support/#api-key)
+- **Quandl**: [Get Free API Key](https://data.nasdaq.com/sign-up)
 
-### **Code Standards**
-- PEP 8 compliance
-- Type hints required
-- Comprehensive documentation
-- Unit test coverage
+### Configuration Files
 
-## 📄 **License**
-
-This project is proprietary software. All rights reserved.
-
-## 📞 **Support**
-
-For technical support or feature requests:
-- Create an issue in the repository
-- Include system information and error logs
-- Provide detailed reproduction steps
+- `echo/config.yaml` - Trading strategy configuration
+- `.streamlit/config.toml` - Dashboard settings
+- `.streamlit/secrets.toml` - Authentication secrets
 
 ---
 
-**Version**: Echo AI v62 Professional
-**Last Updated**: August 28, 2025
-**Platform**: Streamlit Cloud Compatible
+## 📚 Usage
+
+### Running the Main Dashboard
+
 ```bash
-python -m echo.main --report daily
+streamlit run UI.py
 ```
 
-Edit `echo/config.yaml` to match your plan.
+Default access code: `echo2024` (change in `.streamlit/secrets.toml`)
 
+### Running CLI Reports
 
-## AI Copilot Setup
-- Open `docs/AI_COPILOT_README.md` and paste the **Short Project Brief** into your copilot's workspace instructions.
-- Keep this repo open in your editor so the copilot can read files.
+```bash
+python -m echo.main --report daily --config echo/config.yaml
+```
+
+### Training AI Models
+
+```python
+from echo.models.lstm.lstm_predictor import LSTMPredictor
+from echo.preprocessing.financial_data import FinancialDataPreprocessor
+import yfinance as yf
+
+# Fetch data
+data = yf.Ticker("AAPL").history(period="2y")
+
+# Preprocess
+preprocessor = FinancialDataPreprocessor()
+processed = preprocessor.process_pipeline(data)
+
+# Train model
+model = LSTMPredictor(model_id="aapl_predictor")
+X, y = preprocessor.prepare_features(processed)
+model.train(X.values, y.values, epochs=50)
+
+# Make predictions
+predictions = model.predict_next_days(processed.values[-60:], n_days=5)
+print(f"5-day forecast: {predictions}")
+```
+
+### Generating Trading Signals
+
+```python
+from echo.engine.trading_decision import TradingDecisionEngine
+
+engine = TradingDecisionEngine()
+signal = engine.generate_signal(
+    ticker="AAPL",
+    current_price=150.0,
+    ai_prediction=155.0,
+    ai_confidence=0.85,
+    technical_score=75,
+    portfolio_value=10000
+)
+
+print(f"Action: {signal.action.value}")
+print(f"Confidence: {signal.confidence:.2f}")
+print(f"Stop Loss: ${signal.stop_loss:.2f}")
+print(f"Target: ${signal.target_price:.2f}")
+```
+
+---
+
+## 🧪 Testing
+
+### Run All Tests
+
+```bash
+pytest tests/ -v
+```
+
+### Run with Coverage
+
+```bash
+pytest tests/ -v --cov=echo --cov-report=html
+```
+
+### Run Specific Test Suite
+
+```bash
+# Test AI models
+pytest tests/unit/test_base_model.py -v
+
+# Test preprocessing
+pytest tests/unit/test_preprocessing.py -v
+
+# Test trading logic
+pytest tests/unit/test_trading_decision.py -v
+```
+
+---
+
+## 📦 Project Structure
+
+```
+echo-ai-dashboard/
+├── echo/
+│   ├── models/              # AI/ML models
+│   │   ├── base_model.py   # Base model with memory
+│   │   ├── lstm/           # LSTM implementation
+│   │   ├── transformer/    # Transformer models
+│   │   └── rl_agent/       # Reinforcement learning
+│   ├── preprocessing/       # Data preprocessing
+│   │   └── financial_data.py
+│   ├── data_providers/      # Data sources
+│   │   ├── yfinance_provider.py
+│   │   ├── alphavantage_provider.py
+│   │   └── quandl_provider.py
+│   ├── engine/             # Trading logic
+│   │   ├── echo_engine.py
+│   │   ├── portfolio.py
+│   │   └── trading_decision.py
+│   ├── rules/              # Trading rules
+│   ├── utils/              # Utilities
+│   └── dashboard/          # Dashboard components
+├── tests/
+│   ├── unit/               # Unit tests
+│   └── integration/        # Integration tests
+├── docs/                   # Documentation
+├── .github/
+│   └── workflows/          # CI/CD pipelines
+├── UI.py                   # Main dashboard
+├── requirements.txt        # Python dependencies
+├── .env.example           # Environment template
+└── ETHICAL_USAGE.md       # Usage guidelines
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please follow these guidelines:
+
+1. **Fork the Repository**
+2. **Create a Feature Branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+3. **Follow Code Standards**
+   - PEP 8 compliance
+   - Type hints required
+   - Add unit tests for new features
+   - Update documentation
+4. **Run Tests**
+   ```bash
+   pytest tests/ -v
+   ```
+5. **Submit Pull Request**
+
+### Code Quality
+
+All contributions must pass:
+- Linting (flake8, black)
+- Type checking (mypy)
+- Unit tests
+- Security scans
+
+---
+
+## 🔐 Security
+
+### Reporting Vulnerabilities
+
+Please report security issues privately to the maintainers. Do NOT create public issues.
+
+### Security Features
+
+- ✅ No hardcoded secrets
+- ✅ Environment variable management
+- ✅ Secure password hashing (SHA-256)
+- ✅ Input validation and sanitization
+- ✅ Automated security scanning (CodeQL, Bandit)
+- ✅ Dependency vulnerability checking
+
+---
+
+## 📄 License
+
+This project is proprietary software. All rights reserved.
+
+See [LICENSE](LICENSE) for details.
+
+---
+
+## 🌟 Acknowledgments
+
+Built with:
+- [Streamlit](https://streamlit.io/) - Dashboard framework
+- [TensorFlow](https://www.tensorflow.org/) - AI/ML models
+- [Pandas](https://pandas.pydata.org/) - Data manipulation
+- [Plotly](https://plotly.com/) - Interactive visualizations
+- [yfinance](https://github.com/ranaroussi/yfinance) - Market data
+
+---
+
+## 📞 Support
+
+- **Documentation**: See `/docs` directory
+- **Issues**: [GitHub Issues](https://github.com/OxainZ/echo-ai-dashboard/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/OxainZ/echo-ai-dashboard/discussions)
+
+---
+
+## 📈 Roadmap
+
+- [ ] Advanced transformer models
+- [ ] Multi-asset portfolio optimization
+- [ ] Real-time paper trading
+- [ ] Mobile app integration
+- [ ] Social sentiment analysis
+- [ ] Options strategy recommendations
+- [ ] Automated model retraining pipeline
+
+---
+
+**Version**: 2.0.0 (AI-Enhanced)  
+**Last Updated**: December 2024  
+**Status**: Active Development
+
+⚠️ **Remember**: Always read [ETHICAL_USAGE.md](ETHICAL_USAGE.md) before using this software.
