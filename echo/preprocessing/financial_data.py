@@ -50,7 +50,7 @@ class FinancialDataPreprocessor:
         numeric_cols = df.select_dtypes(include=[np.number]).columns
         
         # Forward fill first, then backward fill
-        df[numeric_cols] = df[numeric_cols].fillna(method='ffill').fillna(method='bfill')
+        df[numeric_cols] = df[numeric_cols].ffill().bfill()
         
         # Drop rows with remaining NaN values
         df = df.dropna()
