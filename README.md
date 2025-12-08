@@ -79,6 +79,38 @@ A comprehensive, professional-grade trading intelligence platform featuring real
 
 ## 🚀 **Deployment Instructions**
 
+### **New in v62: Enhanced Features**
+
+This version includes major enhancements:
+
+#### **AI & Machine Learning**
+- **Technical Indicators:** RSI, MACD, Bollinger Bands, Moving Averages
+- **Feature Engineering:** Comprehensive market data preprocessing
+- **Model Framework:** Extensible base classes for ML models (LSTM, Transformers, RL)
+- **Explainability:** Ready for SHAP/LIME integration
+
+#### **Trading Strategies**
+- **Backtesting Framework:** Test strategies on historical data
+- **Position Sizing:** 5 methods including Kelly Criterion and volatility-based
+- **Risk Management:** Portfolio controls, Sharpe/Sortino ratios, drawdown tracking
+- **Example Strategies:** Momentum, Mean Reversion, RSI, MACD ready to use
+
+#### **Data Infrastructure**
+- **Multi-Provider Support:** Automatic fallback between data sources
+- **Error Handling:** Retry logic with exponential backoff
+- **Input Validation:** Secure ticker symbol and parameter validation
+
+#### **Testing & Quality**
+- **Comprehensive Tests:** Unit tests for all core components
+- **Security Scanned:** Zero vulnerabilities (CodeQL verified)
+- **Docker Ready:** Production Dockerfile and docker-compose.yml
+
+For detailed technical documentation, see:
+- `docs/AI_MODELS.md` - Machine learning implementation guide
+- `CONTRIBUTING.md` - Development guidelines
+- `SECURITY.md` - Security best practices
+- `IMPLEMENTATION_SUMMARY.md` - Complete feature overview
+
 ### **Streamlit Cloud Deployment**
 
 1. **Connect Repository**
