@@ -61,11 +61,11 @@ class AlphaVantageProvider:
             quote = data['Global Quote']
             return {
                 'ticker': ticker,
-                'price': float(quote.get('05. price', 0)),
-                'prev_close': float(quote.get('08. previous close', 0)),
-                'change': float(quote.get('09. change', 0)),
+                'price': float(quote['05. price']) if quote.get('05. price') else 0.0,
+                'prev_close': float(quote['08. previous close']) if quote.get('08. previous close') else 0.0,
+                'change': float(quote['09. change']) if quote.get('09. change') else 0.0,
                 'change_percent': quote.get('10. change percent', '0%').replace('%', ''),
-                'volume': int(quote.get('06. volume', 0)),
+                'volume': int(quote['06. volume']) if quote.get('06. volume') else 0,
                 'currency': 'USD',
                 'timestamp': quote.get('07. latest trading day', '')
             }

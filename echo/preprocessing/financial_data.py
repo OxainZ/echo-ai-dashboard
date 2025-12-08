@@ -187,7 +187,7 @@ class FinancialDataPreprocessor:
         """
         # Define feature columns (exclude target and date columns)
         exclude_cols = [target_col, 'Date', 'Open', 'High', 'Low', 'Volume', 'Dividends', 'Stock Splits']
-        self.feature_columns = [col for col in df.columns if col not in exclude_cols and col in df.columns]
+        self.feature_columns = [col for col in df.columns if col not in exclude_cols]
         
         X = df[self.feature_columns].copy()
         y = df[target_col].copy()
