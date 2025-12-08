@@ -1,3 +1,17 @@
+"""
+AI-Powered Trading Intelligence Dashboard
+
+This module provides an advanced dashboard with AI-powered features including:
+- LSTM-based stock predictions
+- Sentiment analysis
+- Technical indicators
+- Real-time recommendations
+
+Features comprehensive AI insights for informed trading decisions.
+
+Author: Echo AI Team
+Version: 3.0
+"""
 from __future__ import annotations
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
@@ -17,7 +31,7 @@ warnings.filterwarnings('ignore')
 # Add current directory to path for imports
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Try to import Echo Engine with error handling
+# Try to import Echo Engine and AI models with error handling
 try:
     from echo.engine.echo_engine import EchoEngine
     from echo.engine.reports import format_daily
@@ -26,6 +40,15 @@ except ImportError:
     ECHO_ENGINE_AVAILABLE = False
     EchoEngine = None
     format_daily = None
+
+try:
+    from echo.ai_models import LSTMStockPredictor, SentimentAnalyzer, calculate_technical_indicators
+    AI_MODELS_AVAILABLE = True
+except ImportError:
+    AI_MODELS_AVAILABLE = False
+    LSTMStockPredictor = None
+    SentimentAnalyzer = None
+    calculate_technical_indicators = None
 
 # ==================== AI-POWERED TRADING INTELLIGENCE ====================
 class AITradingEngine:

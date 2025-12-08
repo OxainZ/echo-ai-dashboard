@@ -1,3 +1,31 @@
+"""
+Echo AI Trading Intelligence Dashboard - Main Application
+
+This is the primary dashboard application with secure authentication and comprehensive
+trading intelligence features.
+
+Features:
+---------
+- Secure password-protected access with SHA-256 hashing
+- Real-time market signals and analysis
+- Portfolio management and tracking
+- Risk analytics and visualization
+- Historical performance analysis
+- Interactive data visualization with Plotly
+- Configurable auto-refresh intervals
+
+Usage:
+------
+Run locally:
+    streamlit run UI.py
+
+Access code (default): echo2024
+
+For Streamlit Cloud deployment, configure secrets in dashboard settings.
+
+Author: Echo AI Team
+Version: 62 Professional
+"""
 from __future__ import annotations
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
@@ -12,10 +40,28 @@ import time
 
 # ==================== AUTHENTICATION SYSTEM ====================
 def check_password():
-    """Returns `True` if the user had the correct password."""
+    """
+    Secure authentication system using SHA-256 password hashing.
+    
+    Checks if the user has entered the correct password by comparing
+    the hashed value against the stored hash in Streamlit secrets.
+    
+    Returns:
+        bool: True if password is correct, False otherwise
+        
+    Notes:
+        - Password hash stored in .streamlit/secrets.toml or Streamlit Cloud secrets
+        - Default password: 'echo2024'
+        - Password is never stored in plain text
+    """
 
     def password_entered():
-        """Checks whether a password entered by the user is correct."""
+        """
+        Validates the password entered by the user.
+        
+        Compares the SHA-256 hash of the entered password with the stored hash.
+        Updates session state accordingly.
+        """
         if hashlib.sha256(st.session_state["password"].encode()).hexdigest() == st.secrets.get("password_hash", hashlib.sha256("echo2024".encode()).hexdigest()):
             st.session_state["password_correct"] = True
             del st.session_state["password"]  # Don't store the password.
@@ -56,6 +102,16 @@ def check_password():
 
 # ==================== CUSTOM CSS STYLING ====================
 def load_css():
+    """
+    Load custom CSS styling for the dashboard.
+    
+    Applies professional styling including:
+    - Gradient headers
+    - Card-based layouts
+    - Alert animations
+    - Color-coded signal indicators
+    - Responsive design elements
+    """
     st.markdown("""
     <style>
     /* Custom CSS for Enhanced UI */
@@ -143,6 +199,23 @@ def load_css():
 
 # ==================== MAIN DASHBOARD FUNCTION ====================
 def main_dashboard():
+    """
+    Main dashboard application function.
+    
+    Orchestrates the entire dashboard including:
+    - Navigation sidebar
+    - Auto-refresh functionality
+    - Module routing based on user selection
+    - Session state management
+    
+    The dashboard provides multiple views:
+    - Dashboard Overview: Main metrics and signals
+    - Signal Analysis: Detailed signal breakdown
+    - Portfolio Management: Position tracking
+    - Risk Analytics: Risk/reward analysis
+    - Historical Performance: Price charts and statistics
+    - Settings: Configuration options
+    """
     # Load custom CSS
     load_css()
 
@@ -207,7 +280,20 @@ def main_dashboard():
 
 # ==================== DASHBOARD SECTIONS ====================
 def show_overview():
-    """Main dashboard overview with enhanced UI"""
+    """
+    Display main dashboard overview with key metrics and signals.
+    
+    Shows:
+    - Composite conviction score
+    - Risk level assessment
+    - Capital efficiency metrics
+    - Active signal count
+    - Critical alerts
+    - Recommended actions
+    - Current portfolio allocations
+    
+    Updates automatically based on auto-refresh interval.
+    """
     st.markdown("""
     <div class="main-header">
         <h1>🚀 Echo AI Trading Intelligence Platform</h1>
@@ -308,7 +394,20 @@ def show_overview():
         st.info("🔧 Please check your configuration and data connections.")
 
 def show_signals():
-    """Enhanced signal analysis section"""
+    """
+    Display enhanced signal analysis section.
+    
+    Provides detailed breakdown of all market signals including:
+    - Signal summary statistics
+    - Individual signal details with scores
+    - Color-coded severity indicators
+    - Signal explanations
+    
+    Signals are categorized as:
+    - Green (Bullish): Positive market indicators
+    - Yellow (Caution): Mixed or neutral signals
+    - Red (Bearish): Warning or negative signals
+    """
     st.header("📡 Signal Analysis Dashboard")
 
     if 'verdict' not in st.session_state:
@@ -363,7 +462,16 @@ def show_signals():
             """, unsafe_allow_html=True)
 
 def show_portfolio():
-    """Portfolio management section"""
+    """
+    Display portfolio management section.
+    
+    Shows current portfolio positions across three slots:
+    - Core: Primary long-term positions
+    - Momentum: Tactical momentum trades
+    - Wildcard: Opportunistic positions
+    
+    Includes allocation details and ticker information.
+    """
     st.header("💼 Portfolio Management")
 
     if 'verdict' not in st.session_state:
@@ -384,7 +492,18 @@ def show_portfolio():
             st.info(f"Current position: {ticker} in {slot_name} slot")
 
 def show_risk_analytics():
-    """Risk analytics section"""
+    """
+    Display risk analytics dashboard.
+    
+    Analyzes and visualizes portfolio risk including:
+    - Risk/Reward heatmap for each position
+    - 20-day momentum calculations
+    - Annualized volatility metrics
+    - Risk level classifications (Green/Yellow/Red)
+    - Risk summary statistics
+    
+    Uses 3-month historical data for calculations.
+    """
     st.header("⚠️ Risk Analytics Dashboard")
 
     if 'verdict' not in st.session_state:
@@ -461,7 +580,18 @@ def show_risk_analytics():
         st.error(f"❌ Error loading risk analytics: {str(e)}")
 
 def show_historical():
-    """Historical performance section"""
+    """
+    Display historical performance section.
+    
+    Provides comprehensive historical analysis including:
+    - 3-month price charts for each position
+    - Cumulative return calculations
+    - Performance statistics (volatility, Sharpe ratio, max drawdown)
+    - Interactive line charts
+    - Tabbed interface for multiple positions
+    
+    All metrics calculated from daily price data.
+    """
     st.header("📈 Historical Performance")
 
     if 'provider' not in st.session_state:
@@ -518,7 +648,17 @@ def show_historical():
                 st.error(f"❌ Error loading data for {ticker}: {str(e)}")
 
 def show_settings():
-    """Settings and configuration"""
+    """
+    Display settings and configuration section.
+    
+    Allows users to configure:
+    - Auto-refresh interval (5s to 5min)
+    - Dashboard preferences
+    - Data export options
+    - System information display
+    
+    Changes apply immediately upon confirmation.
+    """
     st.header("⚙️ Settings & Configuration")
 
     st.subheader("🔧 Dashboard Settings")

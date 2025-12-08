@@ -7,7 +7,7 @@ Includes LSTM-based time series forecasting and continuous learning capabilities
 Author: Echo AI Team
 """
 from __future__ import annotations
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -166,7 +166,7 @@ class LSTMStockPredictor:
     def predict(
         self, 
         recent_data: pd.DataFrame
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """
         Generate predictions for future stock prices.
         
@@ -342,7 +342,7 @@ class SentimentAnalyzer:
     def analyze(
         self, 
         signals: List[Dict]
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """
         Analyze market sentiment from signals.
         

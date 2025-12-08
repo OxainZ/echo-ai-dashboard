@@ -17,24 +17,25 @@ from echo.ai_models import (
 )
 
 
+@pytest.fixture
+def sample_stock_data():
+    """Generate sample stock data for testing - shared fixture."""
+    dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='D')
+    np.random.seed(42)
+    
+    data = pd.DataFrame({
+        'Open': 100 + np.random.randn(len(dates)).cumsum(),
+        'High': 102 + np.random.randn(len(dates)).cumsum(),
+        'Low': 98 + np.random.randn(len(dates)).cumsum(),
+        'Close': 100 + np.random.randn(len(dates)).cumsum(),
+        'Volume': np.random.randint(1000000, 5000000, len(dates))
+    }, index=dates)
+    
+    return data
+
+
 class TestLSTMStockPredictor:
     """Test suite for LSTM stock predictor."""
-    
-    @pytest.fixture
-    def sample_data(self):
-        """Generate sample stock data for testing."""
-        dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='D')
-        np.random.seed(42)
-        
-        data = pd.DataFrame({
-            'Open': 100 + np.random.randn(len(dates)).cumsum(),
-            'High': 102 + np.random.randn(len(dates)).cumsum(),
-            'Low': 98 + np.random.randn(len(dates)).cumsum(),
-            'Close': 100 + np.random.randn(len(dates)).cumsum(),
-            'Volume': np.random.randint(1000000, 5000000, len(dates))
-        }, index=dates)
-        
-        return data
     
     @pytest.fixture
     def predictor(self):
@@ -45,14 +46,14 @@ class TestLSTMStockPredictor:
         """Test predictor initialization."""
         assert predictor.lookback_days == 60
         assert predictor.prediction_horizon == 5
-        assert predictor.is_trained == False
+        assert not predictor.is_trained
         assert 'Close' in predictor.features
     
-    def test_train(self, predictor, sample_data):
+    def test_train(self, predictor, sample_stock_data):
         """Test model training."""
-        history = predictor.train(sample_data, epochs=10, batch_size=32)
+        history = predictor.train(sample_stock_data, epochs=10, batch_size=32)
         
-        assert predictor.is_trained == True
+        assert predictor.is_trained
         assert 'loss' in history
 
 
@@ -72,25 +73,9 @@ class TestSentimentAnalyzer:
 class TestTechnicalIndicators:
     """Test suite for technical indicators."""
     
-    @pytest.fixture
-    def sample_data(self):
-        """Generate sample stock data."""
-        dates = pd.date_range(start='2023-01-01', end='2023-12-31', freq='D')
-        np.random.seed(42)
-        
-        data = pd.DataFrame({
-            'Open': 100 + np.random.randn(len(dates)).cumsum(),
-            'High': 102 + np.random.randn(len(dates)).cumsum(),
-            'Low': 98 + np.random.randn(len(dates)).cumsum(),
-            'Close': 100 + np.random.randn(len(dates)).cumsum(),
-            'Volume': np.random.randint(1000000, 5000000, len(dates))
-        }, index=dates)
-        
-        return data
-    
-    def test_calculate_indicators_default(self, sample_data):
+    def test_calculate_indicators_default(self, sample_stock_data):
         """Test calculating indicators with default periods."""
-        result = calculate_technical_indicators(sample_data)
+        result = calculate_technical_indicators(sample_stock_data)
         
         assert 'SMA_20' in result.columns
         assert 'RSI' in result.columns
