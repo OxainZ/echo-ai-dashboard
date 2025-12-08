@@ -4,11 +4,6 @@ Unit tests for Echo Engine core functionality
 Tests the main engine, signal generation, and verdict creation.
 """
 import pytest
-import sys
-import os
-
-# Add parent directory to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from echo.engine.echo_engine import EchoEngine, Verdict
 from echo.rules.base import Signal, Rule

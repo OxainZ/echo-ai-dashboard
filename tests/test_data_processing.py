@@ -6,10 +6,6 @@ Tests data cleaning, feature engineering, and validation.
 import pytest
 import pandas as pd
 import numpy as np
-import sys
-import os
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from echo.utils.data_processing import DataCleaner, FeatureEngine, prepare_ml_dataset
 

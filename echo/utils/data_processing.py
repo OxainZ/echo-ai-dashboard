@@ -51,10 +51,10 @@ class DataCleaner:
         
         if method == 'ffill':
             # Forward fill - use last known value
-            df_clean = df_clean.fillna(method='ffill', limit=limit)
+            df_clean = df_clean.ffill(limit=limit)
         elif method == 'bfill':
             # Backward fill - use next known value
-            df_clean = df_clean.fillna(method='bfill', limit=limit)
+            df_clean = df_clean.bfill(limit=limit)
         elif method == 'interpolate':
             # Linear interpolation
             df_clean = df_clean.interpolate(method='linear', limit=limit)
