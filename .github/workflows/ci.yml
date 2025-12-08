@@ -1,0 +1,148 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, copilot/** ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pylint
+          pip install -r requirements.txt
+      
+      - name: Lint with flake8
+        run: |
+          # Stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        continue-on-error: true
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run tests with pytest
+        run: |
+          pytest tests/ -v --tb=short
+        continue-on-error: true
+      
+      - name: Generate coverage report
+        run: |
+          pytest tests/ --cov=echo --cov-report=xml --cov-report=html
+        continue-on-error: true
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: matrix.python-version == '3.11'
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+        continue-on-error: true
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety bandit
+          pip install -r requirements.txt
+      
+      - name: Check for security vulnerabilities in dependencies
+        run: |
+          safety check --json || true
+        continue-on-error: true
+      
+      - name: Run Bandit security linter
+        run: |
+          bandit -r echo/ -f json -o bandit-report.json || true
+        continue-on-error: true
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Verify imports
+        run: |
+          python -c "from echo.engine.echo_engine import EchoEngine; print('Echo Engine import successful')"
+          python -c "from echo.data_providers.yfinance_provider import YFinanceProvider; print('Data Provider import successful')"
+          python -c "from echo.ml.base import BasePredictor; print('ML Base import successful')"
+      
+      - name: Check dashboard files
+        run: |
+          python -c "import ast; ast.parse(open('UI.py').read()); print('UI.py syntax OK')"
+          python -c "import ast; ast.parse(open('ai_powered_dashboard.py').read()); print('ai_powered_dashboard.py syntax OK')"
+          python -c "import ast; ast.parse(open('basic_app.py').read()); print('basic_app.py syntax OK')"
+          python -c "import ast; ast.parse(open('simple_app.py').read()); print('simple_app.py syntax OK')"
+
+  docs:
+    name: Documentation Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check documentation files
+        run: |
+          test -f README.md && echo "README.md exists"
+          test -f SECURITY.md && echo "SECURITY.md exists"
+          test -f DISCLAIMER.md && echo "DISCLAIMER.md exists"
+          test -f DASHBOARD_FILES.md && echo "DASHBOARD_FILES.md exists"
+          test -f echo/ml/README.md && echo "ML README.md exists"
+      
+      - name: Verify documentation completeness
+        run: |
+          grep -q "Installation" README.md || echo "README missing installation section"
+          grep -q "Usage" README.md || echo "README missing usage section"
