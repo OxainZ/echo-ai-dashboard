@@ -6,6 +6,14 @@ A comprehensive, professional-grade trading intelligence platform featuring real
 
 ## ✨ Key Features
 
+### 🤖 **AI-Powered Analysis** ✨ NEW!
+- **Stock Price Prediction** - AI-driven 5-day price forecasts with confidence scoring
+- **Trading Decisions** - Intelligent BUY/SELL/HOLD recommendations with risk management
+- **Market Sentiment Analysis** - Real-time sentiment gauges using multiple indicators
+- **Technical Analysis** - Automated RSI, MACD, Bollinger Bands, and moving averages
+- **Risk Assessment** - AI-powered risk level evaluation and position sizing
+- **Pattern Recognition** - Momentum and trend detection algorithms
+
 ### 🔐 **Secure Authentication**
 - Password-protected access with hashed credentials
 - Session-based security management
@@ -66,6 +74,14 @@ A comprehensive, professional-grade trading intelligence platform featuring real
 - **Pandas/NumPy** - Data processing and analysis
 - **Yahoo Finance API** - Real-time market data
 - **Plotly** - Interactive visualizations
+- **AI/ML Components** - Custom prediction and analysis models
+
+### **AI Architecture** ✨ NEW!
+- **Stock Price Predictor** - Technical analysis-based forecasting
+- **Trading Decision Engine** - Kelly Criterion position sizing with risk management
+- **Market Sentiment Analyzer** - Multi-indicator sentiment analysis
+- **Data Pipeline** - Real-time data fetching and preprocessing
+- **Feature Engineering** - Automated momentum, volatility, and trend indicators
 
 ### **Security Features**
 - **SHA-256 Password Hashing** - Secure credential storage
@@ -84,7 +100,7 @@ A comprehensive, professional-grade trading intelligence platform featuring real
 1. **Connect Repository**
    ```
    Repository: https://github.com/OxainZ/echo-ai-dashboard
-   Main File Path: UI.py
+   Main File Path: UI.py (standard) or UI_AI.py (AI-enhanced)
    ```
 
 2. **Configure Secrets** (in Streamlit Cloud dashboard)
@@ -112,6 +128,71 @@ A comprehensive, professional-grade trading intelligence platform featuring real
    # Copy and edit secrets
    cp .streamlit/secrets.toml .streamlit/secrets.toml.local
    # Edit password_hash as needed
+   ```
+
+4. **Run Application**
+   ```bash
+   # Standard dashboard
+   streamlit run UI.py
+   
+   # AI-enhanced dashboard (recommended)
+   streamlit run UI_AI.py
+   ```
+
+## 🤖 **AI Features Usage**
+
+### **Running AI Predictions**
+
+1. Launch the AI-enhanced dashboard:
+   ```bash
+   streamlit run UI_AI.py
+   ```
+
+2. Navigate to "🤖 AI Predictions" from the sidebar
+
+3. Select a stock ticker (QQQ, TSLA, AMZN, or custom)
+
+4. View AI-generated predictions with:
+   - Predicted price and direction
+   - Confidence scores
+   - BUY/SELL/HOLD recommendations
+   - Stop-loss and take-profit levels
+   - Technical analysis charts
+
+### **Understanding AI Predictions**
+
+- **Confidence Score**: 0-85% - Higher is more confident
+- **Direction**: Bullish, Bearish, or Neutral
+- **Risk Level**: Low, Medium, or High
+- **Timeframe**: 5-day prediction horizon
+
+### **Risk Management**
+
+The AI system includes:
+- Kelly Criterion position sizing
+- 5% stop-loss by default
+- 2:1 reward/risk ratio
+- Maximum 25% position size
+- Risk-adjusted recommendations
+
+### **Important Disclaimers** ⚠️
+
+**This AI dashboard is for informational and educational purposes only.**
+
+- ❌ AI predictions are NOT guaranteed
+- ❌ Past performance does NOT indicate future results
+- ❌ Trading involves substantial risk of loss
+- ✅ Always do your own research
+- ✅ Consult a licensed financial advisor
+
+See `docs/AI_FEATURES.md` for complete documentation.
+
+## 📚 **Documentation**
+
+- **AI Features**: See `docs/AI_FEATURES.md`
+- **Architecture**: See `docs/ARCHITECTURE.md`
+- **Tasks Backlog**: See `docs/TASKS_BACKLOG.md`
+- **Coding Standards**: See `docs/CODING_STANDARDS.md`
    ```
 
 4. **Run Application**
