@@ -4,9 +4,6 @@
 import Foundation
 
 struct AppSettings: Codable {
-    // Data source
-    var useMockData: Bool = true
-
     // Spread thresholds (percent)
     var mainLaneSpreadThreshold: Double = 0.35
     var microLaneSpreadThreshold: Double = 0.25
@@ -28,6 +25,9 @@ struct AppSettings: Codable {
 
     // AI features
     var enableFoundationModels: Bool = true
+
+    // Notifications — fires at 9:25 AM ET for each actionable setup
+    var enableMarketAlerts: Bool = true
 
     // Note: Polygon API key is stored in Keychain via KeychainService, not here.
 

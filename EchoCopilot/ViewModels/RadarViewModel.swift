@@ -26,6 +26,16 @@ final class RadarViewModel {
         self.selectedSort = settings.preferredSortOption
     }
 
+    // MARK: - Alert scheduling
+
+    private func scheduleAlerts() {
+        let current = setups
+        let enabled = settings.enableMarketAlerts
+        Task {
+            await AlertService.shared.scheduleAlerts(for: current, enabled: enabled)
+        }
+    }
+
     // MARK: - Filtered + sorted setups
 
     var displayedSetups: [TickerSetup] {
@@ -88,6 +98,7 @@ final class RadarViewModel {
         }
         isLoading = false
         consumePendingFilter()
+        scheduleAlerts()
     }
 
     /// Reads the filter set by ShowActionableSetupsIntent and applies it once.
@@ -111,5 +122,6 @@ final class RadarViewModel {
         } catch {
             refreshBanner = "Live data unavailable — showing cached prices."
         }
+        scheduleAlerts()
     }
 }

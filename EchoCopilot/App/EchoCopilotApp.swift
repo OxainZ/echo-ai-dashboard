@@ -12,6 +12,9 @@ struct EchoCopilotApp: App {
             ContentView()
                 .environmentObject(environment)
                 .preferredColorScheme(.dark)
+                .task {
+                    await AlertService.shared.requestPermission()
+                }
         }
     }
 }

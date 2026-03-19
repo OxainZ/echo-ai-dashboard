@@ -7,6 +7,7 @@ struct JournalListView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var vm: JournalListViewModel?
     @State private var showingEditor = false
+    @State private var exportURL: URLWrapper? = nil
 
     var body: some View {
         NavigationStack {
@@ -20,6 +21,24 @@ struct JournalListView: View {
             .navigationTitle("Journal")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    if let vm, !vm.entries.isEmpty {
+                        Menu {
+                            Button {
+                                exportCSV(entries: vm.entries)
+                            } label: {
+                                Label("Export CSV", systemImage: "tablecells")
+                            }
+                            Button {
+                                exportJSON(entries: vm.entries)
+                            } label: {
+                                Label("Export JSON", systemImage: "square.and.arrow.up")
+                            }
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingEditor = true
@@ -33,6 +52,9 @@ struct JournalListView: View {
                     .environmentObject(env)
                     .onDisappear { vm?.load() }
             }
+            .sheet(item: $exportURL) { wrapper in
+                ShareSheet(url: wrapper.url)
+            }
         }
         .onAppear {
             if vm == nil {
@@ -41,6 +63,16 @@ struct JournalListView: View {
                 vm = newVM
             }
         }
+    }
+
+    private func exportCSV(entries: [JournalEntry]) {
+        guard let url = try? ExportService.journalCSV(entries) else { return }
+        exportURL = URLWrapper(url: url)
+    }
+
+    private func exportJSON(entries: [JournalEntry]) {
+        guard let url = try? ExportService.journalJSON(entries) else { return }
+        exportURL = URLWrapper(url: url)
     }
 }
 

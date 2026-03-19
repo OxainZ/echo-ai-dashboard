@@ -22,7 +22,10 @@ struct SettingsView: View {
         }
         .onAppear {
             if vm == nil {
-                vm = SettingsViewModel(repository: env.settingsRepository)
+                vm = SettingsViewModel(
+                    repository: env.settingsRepository,
+                    setupRepository: env.setupRepository
+                )
             }
         }
         .confirmationDialog("Reset Settings", isPresented: $showResetConfirm) {
@@ -41,12 +44,6 @@ private struct SettingsForm: View {
 
     var body: some View {
         Form {
-            // Data source
-            Section("Data Source") {
-                Toggle("Use Mock Data", isOn: $vm.settings.useMockData)
-                    .onChange(of: vm.settings.useMockData) { _, _ in vm.save() }
-            }
-
             // Lane thresholds
             Section("Lane Thresholds") {
                 SliderRow(
@@ -147,6 +144,30 @@ private struct SettingsForm: View {
                 Text("Uses Apple Intelligence for setup explanations when available (iOS 26+). Falls back to rules-based text on unsupported devices.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            // Notifications
+            Section("Notifications") {
+                Toggle("Market Open Alerts (9:25 AM ET)", isOn: $vm.settings.enableMarketAlerts)
+                    .onChange(of: vm.settings.enableMarketAlerts) { _, _ in vm.save() }
+                Text("Sends a notification for each actionable setup before the 9:30 AM ET open. Requires notification permission.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            // Export
+            Section("Export") {
+                Button {
+                    vm.exportSetups()
+                } label: {
+                    Label("Export Setups (JSON)", systemImage: "square.and.arrow.up")
+                }
+                Text("Backup your radar setups as a JSON file.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .sheet(item: $vm.exportURL) { wrapper in
+                ShareSheet(url: wrapper.url)
             }
 
             // Reset
