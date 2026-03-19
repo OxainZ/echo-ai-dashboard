@@ -14,7 +14,7 @@ struct CopyTicketIntent: AppIntent {
     static let openAppWhenRun: Bool = false
 
     func perform() async throws -> some ProvidesDialog {
-        let repo = MockSetupRepository()
+        let repo = UserDefaultsSetupRepository()
         let setups = try await repo.fetchSetups()
 
         guard let setup = setups.first(where: { $0.symbol.uppercased() == ticker.uppercased() }) else {

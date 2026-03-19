@@ -46,6 +46,8 @@ struct JournalListView: View {
 
 private struct JournalListContent: View {
     @Bindable var vm: JournalListViewModel
+    @EnvironmentObject private var env: AppEnvironment
+    @State private var closingEntry: JournalEntry? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -81,29 +83,47 @@ private struct JournalListContent: View {
                     if !vm.openTrades.isEmpty {
                         Section("Open Trades") {
                             ForEach(vm.openTrades) { entry in
-                                NavigationLink(destination: JournalDetailView(entry: entry)) {
+                                NavigationLink(destination: JournalDetailView(entry: entry)
+                                    .environmentObject(env)) {
                                     JournalRowView(entry: entry)
                                 }
                                 .listRowBackground(Color.clear)
+                                // Swipe left → Close Trade
+                                .swipeActions(edge: .leading) {
+                                    Button {
+                                        closingEntry = entry
+                                    } label: {
+                                        Label("Close", systemImage: "flag.checkered")
+                                    }
+                                    .tint(.green)
+                                }
                             }
-                            .onDelete { vm.delete(at: $0) }
+                            // Uses source array so indices are correct
+                            .onDelete { vm.delete(from: vm.openTrades, at: $0) }
                         }
                     }
 
                     if !vm.closedTrades.isEmpty {
                         Section("Closed Trades") {
                             ForEach(vm.closedTrades) { entry in
-                                NavigationLink(destination: JournalDetailView(entry: entry)) {
+                                NavigationLink(destination: JournalDetailView(entry: entry)
+                                    .environmentObject(env)) {
                                     JournalRowView(entry: entry)
                                 }
                                 .listRowBackground(Color.clear)
                             }
-                            .onDelete { vm.delete(at: $0) }
+                            .onDelete { vm.delete(from: vm.closedTrades, at: $0) }
                         }
                     }
                 }
                 .listStyle(.insetGrouped)
             }
+        }
+        .sheet(item: $closingEntry) { entry in
+            CloseTradeView(entry: entry) { exitPrice, exitDate in
+                vm.close(entry: entry, exitPrice: exitPrice, exitDate: exitDate)
+            }
+            .environmentObject(env)
         }
     }
 }

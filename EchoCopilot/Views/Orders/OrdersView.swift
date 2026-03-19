@@ -81,6 +81,14 @@ struct OrdersView: View {
                                           highlight: true, valueColor: .cyan)
                         }
 
+                        // Warnings
+                        if let warn = vm.positionWarning {
+                            WarningBanner(text: warn, color: .red)
+                        }
+                        if let warn = vm.rrWarning {
+                            WarningBanner(text: warn, color: .orange)
+                        }
+
                         // Copy summary
                         HStack {
                             Spacer()
@@ -104,6 +112,27 @@ struct OrdersView: View {
             .navigationTitle("Order Helper")
             .navigationBarTitleDisplayMode(.large)
         }
+    }
+}
+
+// MARK: - Warning banner
+
+private struct WarningBanner: View {
+    let text: String
+    let color: Color
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(color)
+                .font(.caption)
+            Text(text)
+                .font(.caption)
+                .foregroundStyle(color)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(10)
+        .background(color.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 

@@ -128,6 +128,11 @@ private struct DetailContent: View {
                     }
                 }
 
+                // Pre-trade checklist (actionable setups only)
+                if vm.setup.status == .actionable {
+                    PreTradeChecklist()
+                }
+
                 // Shadow reasons
                 if vm.setup.status == .shadow {
                     SectionCardView(title: "Shadow Reasons", systemImage: "exclamationmark.triangle.fill") {
@@ -287,6 +292,60 @@ private struct DetailContent: View {
         let threshold = vm.setup.lane == .main ? 0.50 : 0.30
         guard let impact = vm.setup.impactPctADTV else { return .secondary }
         return impact <= threshold ? .green : .red
+    }
+}
+
+// MARK: - Pre-trade checklist
+
+/// Stateful checklist that resets every time the setup detail is opened.
+/// Enforces trade discipline without blocking — all items are optional toggles.
+private struct PreTradeChecklist: View {
+    @State private var confirmed = Set<String>()
+
+    private let items = [
+        "Trigger level confirmed on chart",
+        "Stop loss placed at invalidation",
+        "Position size calculated",
+        "Risk % within daily limit",
+        "Catalyst / news reviewed",
+        "Market conditions support trade",
+        "R:R ≥ 2:1"
+    ]
+
+    var body: some View {
+        SectionCardView(title: "Pre-Trade Checklist", systemImage: "checkmark.seal.fill") {
+            ForEach(items, id: \.self) { item in
+                HStack(spacing: 10) {
+                    Image(systemName: confirmed.contains(item) ? "checkmark.circle.fill" : "circle")
+                        .font(.subheadline)
+                        .foregroundStyle(confirmed.contains(item) ? .green : .secondary)
+                    Text(item)
+                        .font(.subheadline)
+                        .foregroundStyle(confirmed.contains(item) ? .primary : .secondary)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if confirmed.contains(item) { confirmed.remove(item) }
+                    else { confirmed.insert(item) }
+                }
+            }
+
+            if !items.isEmpty {
+                Divider()
+                HStack {
+                    Text("\(confirmed.count)/\(items.count) checked")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    if confirmed.count == items.count {
+                        Label("Ready to trade", systemImage: "checkmark.seal.fill")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.green)
+                    }
+                }
+            }
+        }
     }
 }
 

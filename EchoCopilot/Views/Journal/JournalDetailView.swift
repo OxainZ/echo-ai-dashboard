@@ -7,6 +7,7 @@ struct JournalDetailView: View {
     let entry: JournalEntry
     @EnvironmentObject private var env: AppEnvironment
     @State private var showingEditor = false
+    @State private var showingCloseSheet = false
 
     var body: some View {
         ScrollView {
@@ -100,6 +101,16 @@ struct JournalDetailView: View {
         .navigationTitle(entry.ticker.uppercased())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            if entry.exitPrice == nil {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingCloseSheet = true
+                    } label: {
+                        Label("Close Trade", systemImage: "flag.checkered")
+                            .foregroundStyle(.green)
+                    }
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Edit") { showingEditor = true }
             }
@@ -107,6 +118,15 @@ struct JournalDetailView: View {
         .sheet(isPresented: $showingEditor) {
             JournalEditorView(editingEntry: entry)
                 .environmentObject(env)
+        }
+        .sheet(isPresented: $showingCloseSheet) {
+            CloseTradeView(entry: entry) { exitPrice, exitDate in
+                var updated = entry
+                updated.exitPrice = exitPrice
+                updated.exitDate = exitDate
+                try? env.journalRepository.update(entry: updated)
+            }
+            .environmentObject(env)
         }
     }
 }

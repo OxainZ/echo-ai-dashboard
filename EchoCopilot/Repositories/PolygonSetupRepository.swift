@@ -20,6 +20,10 @@ final class PolygonSetupRepository: SetupRepositoryProtocol {
     private let apiKey: String
     private let session: URLSession
 
+    /// Minimum seconds between live refreshes (free Polygon tier: 5 req/min).
+    private let cooldownSeconds: TimeInterval = 15
+    private var lastRefresh: Date? = nil
+
     init(base: any SetupRepositoryProtocol, apiKey: String, session: URLSession = .shared) {
         self.base = base
         self.apiKey = apiKey
@@ -36,6 +40,11 @@ final class PolygonSetupRepository: SetupRepositoryProtocol {
         var setups = try await base.fetchSetups()
         guard !setups.isEmpty, !apiKey.isEmpty else { return setups }
 
+        // Rate-limit: skip network call if refreshed recently
+        if let last = lastRefresh, Date().timeIntervalSince(last) < cooldownSeconds {
+            return setups
+        }
+
         let symbols = setups.map { $0.symbol }.joined(separator: ",")
         guard let url = URL(string: "https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers=\(symbols)&apiKey=\(apiKey)") else {
             return setups
@@ -46,6 +55,7 @@ final class PolygonSetupRepository: SetupRepositoryProtocol {
             let (d, response) = try await session.data(from: url)
             guard (response as? HTTPURLResponse)?.statusCode == 200 else { return setups }
             data = d
+            lastRefresh = Date()
         } catch {
             // Network error — return cached setups rather than crashing
             return setups

@@ -93,6 +93,22 @@ private struct RadarContentView: View {
                 .padding(.vertical, 8)
             }
 
+            // Refresh error banner
+            if let banner = vm.refreshBanner {
+                HStack(spacing: 6) {
+                    Image(systemName: "wifi.exclamationmark").foregroundStyle(.orange)
+                    Text(banner).font(.caption).foregroundStyle(.orange)
+                    Spacer()
+                    Button { vm.refreshBanner = nil } label: {
+                        Image(systemName: "xmark").font(.caption2)
+                    }
+                    .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 6)
+                .background(Color.orange.opacity(0.08))
+            }
+
             // Stats bar
             if !vm.setups.isEmpty {
                 HStack(spacing: 16) {

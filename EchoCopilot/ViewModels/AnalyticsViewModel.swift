@@ -4,10 +4,37 @@
 import Foundation
 import Observation
 
+enum AnalyticsDateRange: String, CaseIterable, Identifiable {
+    case allTime   = "All Time"
+    case thisWeek  = "This Week"
+    case thisMonth = "This Month"
+    case lastMonth = "Last Month"
+    case thisYear  = "This Year"
+
+    var id: String { rawValue }
+
+    func startDate(calendar: Calendar = .current) -> Date? {
+        let now = Date()
+        switch self {
+        case .allTime:   return nil
+        case .thisWeek:  return calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now))
+        case .thisMonth: return calendar.date(from: calendar.dateComponents([.year, .month], from: now))
+        case .lastMonth:
+            let comps = calendar.dateComponents([.year, .month], from: now)
+            guard var month = comps.month, let year = comps.year else { return nil }
+            month -= 1
+            let adjusted = month < 1 ? DateComponents(year: year - 1, month: 12) : DateComponents(year: year, month: month)
+            return calendar.date(from: adjusted)
+        case .thisYear:  return calendar.date(from: calendar.dateComponents([.year], from: now))
+        }
+    }
+}
+
 @Observable
 final class AnalyticsViewModel {
     var entries: [JournalEntry] = []
     var errorMessage: String? = nil
+    var dateRange: AnalyticsDateRange = .allTime
 
     private let repository: any JournalRepositoryProtocol
 
@@ -23,9 +50,16 @@ final class AnalyticsViewModel {
         }
     }
 
+    // MARK: - Filtered entries
+
+    private var filteredEntries: [JournalEntry] {
+        guard let start = dateRange.startDate() else { return entries }
+        return entries.filter { ($0.exitDate ?? $0.entryDate) >= start }
+    }
+
     // MARK: - Subsets
 
-    var closedTrades: [JournalEntry] { entries.filter { $0.exitPrice != nil } }
+    var closedTrades: [JournalEntry] { filteredEntries.filter { $0.exitPrice != nil } }
 
     // MARK: - Summary stats
 

@@ -87,13 +87,29 @@ final class RadarViewModel {
             errorMessage = "Failed to load setups: \(error.localizedDescription)"
         }
         isLoading = false
+        consumePendingFilter()
     }
+
+    /// Reads the filter set by ShowActionableSetupsIntent and applies it once.
+    private func consumePendingFilter() {
+        let key = "echo_pending_filter"
+        guard let raw = UserDefaults.standard.string(forKey: key) else { return }
+        UserDefaults.standard.removeObject(forKey: key)
+        switch raw {
+        case "actionable": selectedFilter = .actionable
+        case "shadow":     selectedFilter = .shadow
+        default:           selectedFilter = .all
+        }
+    }
+
+    var refreshBanner: String? = nil   // Transient message shown after refresh
 
     func refresh() async {
         do {
             setups = try await repository.refresh()
+            refreshBanner = nil
         } catch {
-            errorMessage = "Refresh failed: \(error.localizedDescription)"
+            refreshBanner = "Live data unavailable — showing cached prices."
         }
     }
 }

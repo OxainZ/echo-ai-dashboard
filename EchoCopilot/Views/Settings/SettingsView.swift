@@ -130,13 +130,12 @@ private struct SettingsForm: View {
                 HStack {
                     Text("API Key")
                     Spacer()
-                    SecureField("Paste key here", text: $vm.settings.polygonApiKey)
+                    SecureField("Paste key here", text: $vm.polygonApiKey)
                         .multilineTextAlignment(.trailing)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
-                        .onChange(of: vm.settings.polygonApiKey) { _, _ in vm.save() }
                 }
-                Text("Free key at polygon.io — enables live price, RVOL, and spread on pull-to-refresh. Leave blank to use mock data.")
+                Text("Free key at polygon.io — stored in Keychain. Enables live price, RVOL, and spread on pull-to-refresh.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

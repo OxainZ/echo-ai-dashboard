@@ -11,8 +11,7 @@ struct ExplainSetupIntent: AppIntent {
     var ticker: String
 
     func perform() async throws -> some ProvidesDialog {
-        // Fetch setup from mock repository
-        let repo = MockSetupRepository()
+        let repo = UserDefaultsSetupRepository()
         let setups = try await repo.fetchSetups()
 
         guard let setup = setups.first(where: { $0.symbol.uppercased() == ticker.uppercased() }) else {

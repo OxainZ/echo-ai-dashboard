@@ -27,11 +27,22 @@ final class JournalListViewModel {
 
     // MARK: - Delete
 
-    func delete(at offsets: IndexSet) {
+    /// Safe delete using explicit source array so section-based lists pass the
+    /// correct entries (ForEach gives indices relative to its own array, not entries).
+    func delete(from source: [JournalEntry], at offsets: IndexSet) {
         offsets.forEach { idx in
-            let entry = entries[idx]
-            try? repository.delete(id: entry.id)
+            try? repository.delete(id: source[idx].id)
         }
+        load()
+    }
+
+    // MARK: - Close trade
+
+    func close(entry: JournalEntry, exitPrice: Double, exitDate: Date = Date()) {
+        var updated = entry
+        updated.exitPrice = exitPrice
+        updated.exitDate = exitDate
+        try? repository.update(entry: updated)
         load()
     }
 

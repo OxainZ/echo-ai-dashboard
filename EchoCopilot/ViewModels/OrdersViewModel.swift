@@ -27,6 +27,24 @@ final class OrdersViewModel {
         return nil
     }
 
+    /// Non-blocking warnings (show in orange, don't block calculation).
+    var positionWarning: String? {
+        guard let calc = calculation else { return nil }
+        if calc.totalPositionCost > calc.accountSize {
+            let pct = (calc.totalPositionCost / calc.accountSize * 100)
+            return String(format: "Position notional (%.0f%% of account) exceeds account size — consider reducing risk %%.", pct)
+        }
+        return nil
+    }
+
+    var rrWarning: String? {
+        guard let calc = calculation, calc.rewardToRisk > 0 else { return nil }
+        if calc.rewardToRisk < 2.0 {
+            return String(format: "R:R is only %.2f:1 — aim for ≥ 2:1 before entering.", calc.rewardToRisk)
+        }
+        return nil
+    }
+
     // MARK: - Parsed doubles
 
     var entryPrice: Double?  { Double(entryPriceText.replacingOccurrences(of: ",", with: "")) }

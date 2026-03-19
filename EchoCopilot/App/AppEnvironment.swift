@@ -31,14 +31,15 @@ final class AppEnvironment: ObservableObject {
         self.clipboardService = clipboardService ?? LiveClipboardService()
         self.copyTicketService = CopyTicketService()
 
-        // Setup repository: use Polygon-enriched live data when an API key is set,
+        // Setup repository: use Polygon-enriched live data when a Keychain API key is set,
         // otherwise fall back to UserDefaults-persisted setups (seeded with sample data).
         if let overrideRepo = setupRepository {
             self.setupRepository = overrideRepo
         } else {
             let persistentRepo = UserDefaultsSetupRepository()
-            if !settings.polygonApiKey.isEmpty {
-                self.setupRepository = PolygonSetupRepository(base: persistentRepo, apiKey: settings.polygonApiKey)
+            let polygonKey = KeychainService.get(forKey: KeychainService.Key.polygonApiKey) ?? ""
+            if !polygonKey.isEmpty {
+                self.setupRepository = PolygonSetupRepository(base: persistentRepo, apiKey: polygonKey)
             } else {
                 self.setupRepository = persistentRepo
             }

@@ -19,6 +19,21 @@ struct AnalyticsView: View {
             }
             .navigationTitle("Analytics")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                if let vm {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Picker("Range", selection: Binding(
+                            get: { vm.dateRange },
+                            set: { vm.dateRange = $0 }
+                        )) {
+                            ForEach(AnalyticsDateRange.allCases) { range in
+                                Text(range.rawValue).tag(range)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                    }
+                }
+            }
         }
         .onAppear {
             if vm == nil { vm = AnalyticsViewModel(repository: env.journalRepository) }
