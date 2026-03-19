@@ -202,6 +202,19 @@ private struct DetailContent: View {
                     icon: "doc.on.doc"
                 )
 
+                ShareLink(item: vm.ticketText) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "square.and.arrow.up")
+                        Text("Share")
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color(.systemGray4), in: RoundedRectangle(cornerRadius: 10))
+                }
+                .buttonStyle(.plain)
+
                 Button {
                     showingJournalSheet = true
                 } label: {

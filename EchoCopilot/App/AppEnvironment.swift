@@ -25,11 +25,23 @@ final class AppEnvironment: ObservableObject {
         let settings = settingsRepo.load()
 
         self.settingsRepository = settingsRepo
-        self.setupRepository = setupRepository ?? MockSetupRepository()
         self.journalRepository = journalRepository ?? UserDefaultsJournalRepository()
         self.rulesEvaluator = rulesEvaluator ?? SetupRulesEvaluator()
         self.explanationService = explanationService ?? ExplanationServiceFactory.make(enableAI: settings.enableFoundationModels)
         self.clipboardService = clipboardService ?? LiveClipboardService()
         self.copyTicketService = CopyTicketService()
+
+        // Setup repository: use Polygon-enriched live data when an API key is set,
+        // otherwise fall back to UserDefaults-persisted setups (seeded with sample data).
+        if let overrideRepo = setupRepository {
+            self.setupRepository = overrideRepo
+        } else {
+            let persistentRepo = UserDefaultsSetupRepository()
+            if !settings.polygonApiKey.isEmpty {
+                self.setupRepository = PolygonSetupRepository(base: persistentRepo, apiKey: settings.polygonApiKey)
+            } else {
+                self.setupRepository = persistentRepo
+            }
+        }
     }
 }

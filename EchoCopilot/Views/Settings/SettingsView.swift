@@ -125,6 +125,22 @@ private struct SettingsForm: View {
                 .onChange(of: vm.settings.preferredSortOption) { _, _ in vm.save() }
             }
 
+            // Live data
+            Section("Live Data — Polygon.io") {
+                HStack {
+                    Text("API Key")
+                    Spacer()
+                    SecureField("Paste key here", text: $vm.settings.polygonApiKey)
+                        .multilineTextAlignment(.trailing)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .onChange(of: vm.settings.polygonApiKey) { _, _ in vm.save() }
+                }
+                Text("Free key at polygon.io — enables live price, RVOL, and spread on pull-to-refresh. Leave blank to use mock data.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             // AI features
             Section("AI Features") {
                 Toggle("Enable Foundation Models", isOn: $vm.settings.enableFoundationModels)

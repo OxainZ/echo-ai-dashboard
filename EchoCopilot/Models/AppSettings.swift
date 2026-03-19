@@ -29,6 +29,10 @@ struct AppSettings: Codable {
     // AI features
     var enableFoundationModels: Bool = true
 
+    // Live data — Polygon.io
+    // Get a free key at https://polygon.io (free tier covers snapshots)
+    var polygonApiKey: String = ""
+
     // MARK: - Spread threshold for a given lane
     func spreadThreshold(for lane: TradingLane) -> Double {
         lane == .main ? mainLaneSpreadThreshold : microLaneSpreadThreshold

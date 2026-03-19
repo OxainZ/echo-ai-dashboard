@@ -6,6 +6,7 @@ import SwiftUI
 struct RadarView: View {
     @EnvironmentObject private var env: AppEnvironment
     @State private var viewModel: RadarViewModel?
+    @State private var showingNewSetup = false
 
     var body: some View {
         NavigationStack {
@@ -24,6 +25,13 @@ struct RadarView: View {
                         sortMenu(vm: vm)
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showingNewSetup = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
             }
         }
         .task {
@@ -31,6 +39,11 @@ struct RadarView: View {
             let vm = RadarViewModel(repository: env.setupRepository, settings: settings)
             viewModel = vm
             await vm.load()
+        }
+        .sheet(isPresented: $showingNewSetup) {
+            SetupEditorView()
+                .environmentObject(env)
+                .onDisappear { Task { await viewModel?.load() } }
         }
     }
 
@@ -59,6 +72,8 @@ struct RadarView: View {
 
 private struct RadarContentView: View {
     @Bindable var vm: RadarViewModel
+    @EnvironmentObject private var env: AppEnvironment
+    @State private var editingSetup: TickerSetup? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -112,7 +127,9 @@ private struct RadarContentView: View {
                 EmptyStateView(
                     systemImage: "antenna.radiowaves.left.and.right",
                     title: "No Setups",
-                    subtitle: "No setups match your current filter."
+                    subtitle: vm.searchText.isEmpty
+                        ? "Tap + to add your first setup."
+                        : "No results for '\(vm.searchText)'."
                 )
                 Spacer()
             } else {
@@ -126,6 +143,24 @@ private struct RadarContentView: View {
                         .listRowSeparator(.hidden)
                         .padding(.vertical, 4)
                         .padding(.horizontal, 12)
+                        .swipeActions(edge: .leading) {
+                            Button {
+                                editingSetup = setup
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.blue)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                Task {
+                                    try? await env.setupRepository.delete(id: setup.id)
+                                    await vm.load()
+                                }
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                 }
                 .listStyle(.plain)
@@ -135,6 +170,11 @@ private struct RadarContentView: View {
             }
         }
         .searchable(text: $vm.searchText, prompt: "Search ticker or company")
+        .sheet(item: $editingSetup) { setup in
+            SetupEditorView(editing: setup)
+                .environmentObject(env)
+                .onDisappear { Task { await vm.load() } }
+        }
     }
 }
 

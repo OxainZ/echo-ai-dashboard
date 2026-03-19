@@ -23,6 +23,11 @@ struct ContentView: View {
                     Label("Journal", systemImage: "book.closed")
                 }
 
+            AnalyticsView()
+                .tabItem {
+                    Label("Analytics", systemImage: "chart.line.uptrend.xyaxis")
+                }
+
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gearshape")
