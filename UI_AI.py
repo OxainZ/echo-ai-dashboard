@@ -96,17 +96,18 @@ def load_css():
 
 def main_dashboard():
     """Main AI-enhanced dashboard"""
-    load_css()
-    
-    # Auto-refresh every 15 seconds
-    st_autorefresh(interval=15000)
-    
+    # Must be the first Streamlit command of the run
     st.set_page_config(
         page_title="🚀 Echo AI - Advanced Intelligence",
         layout="wide",
         page_icon="🤖",
         initial_sidebar_state="expanded"
     )
+
+    load_css()
+
+    # Auto-refresh every 15 seconds
+    st_autorefresh(interval=15000)
     
     # Sidebar navigation
     with st.sidebar:
@@ -306,7 +307,7 @@ def show_ai_predictions():
                 # Fetch and prepare data
                 df = pipeline.prepare_for_prediction(selected_ticker, period="3mo")
                 current_quote = pipeline.get_current_price(selected_ticker)
-                current_price = current_quote.get("price", df['Close'].iloc[-1])
+                current_price = current_quote.get("price") or float(df['Close'].iloc[-1])
                 
                 # Generate prediction
                 prediction = predictor.predict(df, ticker=selected_ticker)

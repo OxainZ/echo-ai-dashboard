@@ -143,19 +143,19 @@ def load_css():
 
 # ==================== MAIN DASHBOARD FUNCTION ====================
 def main_dashboard():
-    # Load custom CSS
-    load_css()
-
-    # Auto-refresh dashboard every 5 seconds
-    st_autorefresh(interval=5000)
-
-    # Enhanced page config
+    # Enhanced page config (must be the first Streamlit command of the run)
     st.set_page_config(
         page_title="🚀 Echo AI - Advanced Trading Intelligence",
         layout="wide",
         page_icon="🚀",
         initial_sidebar_state="expanded"
     )
+
+    # Load custom CSS
+    load_css()
+
+    # Auto-refresh dashboard every 5 seconds
+    st_autorefresh(interval=5000)
 
     # Sidebar with navigation and settings
     with st.sidebar:
@@ -245,7 +245,7 @@ def show_overview():
             """, unsafe_allow_html=True)
 
         with col2:
-            risk_color = {"Low": "#28a745", "Medium": "#ffc107", "High": "#dc3545"}.get(verdict.risk_label, "#6c757d")
+            risk_color = {"Low": "#28a745", "Medium": "#ffc107", "High": "#dc3545", "Elevated": "#fd7e14", "Moderate": "#17a2b8"}.get(verdict.risk_label, "#6c757d")
             st.markdown(f"""
             <div class="metric-card">
                 <h3>⚠️ Risk Level</h3>
