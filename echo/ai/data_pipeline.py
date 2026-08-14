@@ -78,7 +78,7 @@ class DataPipeline:
         df = df.copy()
         
         # Handle missing values
-        df = df.fillna(method='ffill').fillna(method='bfill')
+        df = df.ffill().bfill()
         
         # Ensure proper column names
         if 'Close' not in df.columns and 'close' in df.columns:
@@ -97,12 +97,12 @@ class DataPipeline:
         
         # Calculate price ranges
         df['Daily_Range'] = df['High'] - df['Low']
-        df['True_Range'] = df.apply(
-            lambda x: max(x['High'] - x['Low'], 
-                         abs(x['High'] - x['Close']),
-                         abs(x['Low'] - x['Close'])),
-            axis=1
-        )
+        prev_close = df['Close'].shift(1)
+        df['True_Range'] = pd.concat([
+            df['High'] - df['Low'],
+            (df['High'] - prev_close).abs(),
+            (df['Low'] - prev_close).abs()
+        ], axis=1).max(axis=1)
         
         # Normalize volume (z-score)
         volume_mean = df['Volume'].rolling(window=20).mean()
@@ -295,7 +295,7 @@ class MarketDataAggregator:
                     change = (current - prev) / prev * 100
                     
                     overview["markets"][ticker] = {
-                        "price": quote.get("price", current),
+                        "price": quote.get("price") or current,
                         "change_pct": change,
                         "volume": df['Volume'].iloc[-1],
                         "trend": "up" if change > 0 else "down"

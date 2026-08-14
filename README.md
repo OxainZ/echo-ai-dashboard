@@ -105,7 +105,7 @@ A comprehensive, professional-grade trading intelligence platform featuring real
 
 2. **Configure Secrets** (in Streamlit Cloud dashboard)
    ```toml
-   password_hash = "c3499c2729730a7f807efb8676a92dcb6f8a3f8f0675b84d7f3142c3c7"
+   password_hash = "cf509bdfa8fc4d619d83421b13a6cca3e8b0119d26a16696162b29228b6a0758"
    ```
 
 3. **Default Access Code**: `echo2024`

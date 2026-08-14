@@ -272,19 +272,19 @@ def check_ai_powered_authentication():
 def main_ai_dashboard():
     """AI-powered trading intelligence dashboard"""
 
-    # Load enhanced CSS
-    load_enhanced_css()
-
-    # Auto-refresh with AI optimization
-    st_autorefresh(interval=15000)  # 15 seconds for real-time AI updates
-
-    # Enhanced page config
+    # Enhanced page config (must be the first Streamlit command of the run)
     st.set_page_config(
         page_title="🚀 Echo AI - Neural Trading Intelligence",
         layout="wide",
         page_icon="🤖",
         initial_sidebar_state="expanded"
     )
+
+    # Load enhanced CSS
+    load_enhanced_css()
+
+    # Auto-refresh with AI optimization
+    st_autorefresh(interval=15000)  # 15 seconds for real-time AI updates
 
     # AI-powered sidebar navigation
     with st.sidebar:
@@ -397,7 +397,7 @@ def show_ai_overview():
             """, unsafe_allow_html=True)
 
         with col2:
-            risk_color = {"Low": "#28a745", "Medium": "#ffc107", "High": "#dc3545"}.get(verdict.risk_label, "#6c757d")
+            risk_color = {"Low": "#28a745", "Medium": "#ffc107", "High": "#dc3545", "Elevated": "#fd7e14", "Moderate": "#17a2b8"}.get(verdict.risk_label, "#6c757d")
             st.markdown(f"""
             <div class="ai-metric-card">
                 <h3>⚠️ AI Risk Assessment</h3>
@@ -486,6 +486,10 @@ def show_neural_signals():
 
     try:
         cfg_path = "echo/config.yaml"
+        if not ECHO_ENGINE_AVAILABLE:
+            st.error("❌ Echo Engine not available")
+            return
+
         eng = EchoEngine(cfg_path)
         verdict = eng.run()
 
@@ -546,6 +550,10 @@ def show_ai_recommendations():
 
     try:
         cfg_path = "echo/config.yaml"
+        if not ECHO_ENGINE_AVAILABLE:
+            st.error("❌ Echo Engine not available")
+            return
+
         eng = EchoEngine(cfg_path)
         verdict = eng.run()
 

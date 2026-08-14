@@ -5,13 +5,14 @@ from streamlit_autorefresh import st_autorefresh
 import pandas as pd
 from datetime import datetime, timedelta
 from dateutil import parser
-from engine.echo_engine import EchoEngine
-from engine.reports import format_daily
+from echo.engine.echo_engine import EchoEngine
+from echo.engine.reports import format_daily
+
+st.set_page_config(page_title="Echo v62 — Local Runner (PLUS)", layout="wide")
 
 # Auto-refresh dashboard every 5 seconds
 st_autorefresh(interval=5000)
 
-st.set_page_config(page_title="Echo v62 — Local Runner (PLUS)", layout="wide")
 st.title("Echo v62 — Local Runner (PLUS)")
 st.caption("Local, privacy-first dashboard. Research & decision support only — no trading automation.")
 
