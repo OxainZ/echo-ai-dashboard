@@ -151,15 +151,28 @@ class AIDashboardUI:
         }
         
         color = sentiment_colors.get(sentiment["sentiment"], "#6c757d")
-        
+
+        # Directional gauge: 0 = strongly bearish, 50 = neutral, 100 = strongly
+        # bullish, matching the red/yellow/green bands. (Previously the gauge
+        # plotted raw strength, so a STRONG BEARISH reading rendered at 80 —
+        # deep inside the green band.)
+        strength = float(sentiment.get("strength", 0.5))
+        label = str(sentiment.get("sentiment", "neutral"))
+        if "bullish" in label:
+            gauge_value = 50 + strength * 50
+        elif "bearish" in label:
+            gauge_value = 50 - strength * 50
+        else:
+            gauge_value = 50.0
+
         fig = go.Figure(go.Indicator(
             mode="gauge+number+delta",
-            value=sentiment["strength"] * 100,
+            value=gauge_value,
             domain={'x': [0, 1], 'y': [0, 1]},
-            title={'text': f"Market Sentiment: {sentiment['sentiment'].title()}"},
+            title={'text': f"Market Sentiment: {label.title()} (0 = bearish, 100 = bullish)"},
             delta={'reference': 50},
             gauge={
-                'axis': {'range': [None, 100]},
+                'axis': {'range': [0, 100]},
                 'bar': {'color': color},
                 'steps': [
                     {'range': [0, 33], 'color': "#f8d7da"},
@@ -169,7 +182,7 @@ class AIDashboardUI:
                 'threshold': {
                     'line': {'color': "red", 'width': 4},
                     'thickness': 0.75,
-                    'value': sentiment["strength"] * 100
+                    'value': gauge_value
                 }
             }
         ))
