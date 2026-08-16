@@ -27,45 +27,88 @@ except ImportError:
     EchoEngine = None
     format_daily = None
 
-# ==================== AI-POWERED TRADING INTELLIGENCE ====================
+# ==================== CACHED DATA ACCESS ====================
+CFG_PATH = "echo/config.yaml"
+# Signals run on daily bars — before caching, every 15s autorefresh re-ran the
+# whole engine (network fetch included) in every view.
+DATA_TTL_SECONDS = 300
+
+@st.cache_resource(show_spinner=False)
+def get_engine():
+    if EchoEngine is None:
+        raise RuntimeError("Echo Engine not available")
+    return EchoEngine(CFG_PATH)
+
+@st.cache_data(ttl=DATA_TTL_SECONDS, show_spinner="Running Echo engine...")
+def get_verdict():
+    return get_engine().run()
+
+@st.cache_data(ttl=DATA_TTL_SECONDS, show_spinner=False)
+def get_history(ticker: str, period: str = "3mo", interval: str = "1d"):
+    return get_engine().provider.history(ticker, period=period, interval=interval)
+
+def clear_data_caches():
+    get_verdict.clear()
+    get_history.clear()
+
+# ==================== SIGNAL-DRIVEN TRADING INTELLIGENCE ====================
 class AITradingEngine:
-    """Advanced AI-powered trading intelligence engine"""
+    """Signal-driven trading intelligence engine.
+
+    Everything here is DETERMINISTIC and derived from the Echo engine's
+    signals (or real price history in the views) — no simulated or random
+    numbers. Same inputs always produce the same displayed output.
+    """
 
     def __init__(self):
-        self.model_version = "GPT-4 Enhanced v2.1"
+        self.model_version = "Echo Signal Engine v2.1"
         self.confidence_threshold = 0.75
         self.risk_tolerance = 0.6
 
     def analyze_market_sentiment(self, signals: List) -> Dict:
-        """AI-powered sentiment analysis"""
-        bullish_signals = len([s for s in signals if s.severity == "green"])
-        bearish_signals = len([s for s in signals if s.severity == "red"])
-        neutral_signals = len([s for s in signals if s.severity == "yellow"])
+        """Deterministic sentiment read of the Echo signal stack.
 
+        In the Echo engine, severity is an ATTENTION level (yellow/red are
+        warnings) and low-score green signals ("No FOMC tilt", "Outside PEAD
+        window") carry no information. The old logic counted every green as
+        fully bullish, so every quiet day displayed "strongly bullish" at
+        95% confidence. Now only actively constructive greens (score >= 60)
+        count as bullish evidence, warnings subtract, and confidence scales
+        with how far the evidence sits from neutral.
+        """
         total = len(signals)
         if total == 0:
-            return {"sentiment": "neutral", "confidence": 0.5, "analysis": "Insufficient data"}
+            return {"sentiment": "neutral", "confidence": 0.5,
+                    "analysis": "No signals available", "score": 0.5}
 
-        # AI-weighted sentiment calculation
-        sentiment_score = (bullish_signals * 1.0 + neutral_signals * 0.5 + bearish_signals * 0.0) / total
+        red = len([s for s in signals if s.severity == "red"])
+        yellow = len([s for s in signals if s.severity == "yellow"])
+        active_green = len([s for s in signals
+                            if s.severity == "green" and getattr(s, "score", 0) >= 60])
+
+        sentiment_score = 0.5 + 0.4 * (active_green / total) \
+            - 0.3 * (yellow / total) - 0.6 * (red / total)
+        sentiment_score = max(0.0, min(1.0, sentiment_score))
 
         if sentiment_score > 0.7:
             sentiment = "strongly_bullish"
-            analysis = "AI detects strong upward momentum with high conviction signals"
+            analysis = "Signal stack is strongly constructive with no material warnings"
         elif sentiment_score > 0.6:
             sentiment = "bullish"
-            analysis = "AI identifies positive market momentum with supportive signals"
+            analysis = "Signal stack leans constructive; few warnings active"
         elif sentiment_score > 0.4:
             sentiment = "neutral"
-            analysis = "AI observes balanced market conditions with mixed signals"
+            analysis = "Signal stack is quiet or mixed — no directional evidence"
         elif sentiment_score > 0.3:
             sentiment = "bearish"
-            analysis = "AI detects cautious market sentiment with warning signals"
+            analysis = "Warning signals outweigh constructive ones"
         else:
             sentiment = "strongly_bearish"
-            analysis = "AI identifies significant downward pressure with critical signals"
+            analysis = "Multiple critical warnings active in the signal stack"
 
-        confidence = min(0.95, sentiment_score + 0.2)  # AI confidence boost
+        # Confidence reflects distance from neutral, capped modestly — this is
+        # a heuristic read of rule signals, not a calibrated model.
+        confidence = round(min(0.85, 0.35 + abs(sentiment_score - 0.5)), 3)
 
         return {
             "sentiment": sentiment,
@@ -74,38 +117,38 @@ class AITradingEngine:
             "score": sentiment_score
         }
 
-    def predict_market_direction(self, historical_data: Dict) -> Dict:
-        """AI-powered market direction prediction"""
-        # Simulate AI prediction based on current data
-        base_prediction = random.uniform(0.3, 0.8)  # In real app, use actual ML model
+    def predict_market_direction(self, market_state: Dict) -> Dict:
+        """Deterministic outlook derived from the current signal stack.
 
-        if base_prediction > 0.7:
-            direction = "strong_uptrend"
-            probability = base_prediction
-            timeframe = "1-3 days"
-        elif base_prediction > 0.6:
-            direction = "uptrend"
-            probability = base_prediction
-            timeframe = "3-7 days"
-        elif base_prediction > 0.4:
-            direction = "sideways"
-            probability = base_prediction
-            timeframe = "1-2 weeks"
-        elif base_prediction > 0.3:
-            direction = "downtrend"
-            probability = base_prediction
-            timeframe = "3-7 days"
+        (Previously this returned random.uniform noise dressed up as a neural
+        network — the displayed 'prediction' reshuffled on every refresh.)
+        """
+        signals = market_state.get("signals", []) or []
+        sentiment = self.analyze_market_sentiment(signals)
+        score = sentiment["score"]
+
+        if score >= 0.75:
+            direction, timeframe = "strong_uptrend", "1-3 days"
+        elif score >= 0.6:
+            direction, timeframe = "uptrend", "3-7 days"
+        elif score > 0.4:
+            direction, timeframe = "sideways", "1-2 weeks"
+        elif score > 0.25:
+            direction, timeframe = "downtrend", "3-7 days"
         else:
-            direction = "strong_downtrend"
-            probability = base_prediction
-            timeframe = "1-3 days"
+            direction, timeframe = "strong_downtrend", "1-3 days"
+
+        # Weight assigned to the called direction: 0.5 = coin-flip (sideways),
+        # approaching 1.0 only as the signal evidence becomes one-sided.
+        probability = round(0.5 + abs(score - 0.5), 3)
 
         return {
             "direction": direction,
             "probability": probability,
             "timeframe": timeframe,
-            "confidence": min(0.9, probability + 0.1),
-            "ai_insight": f"Neural network analysis suggests {direction} with {probability:.1%} probability over {timeframe}"
+            "confidence": sentiment["confidence"],
+            "ai_insight": f"Signal-stack analysis points to {direction.replace('_', ' ')} "
+                          f"({probability:.0%} weight) over {timeframe}"
         }
 
     def generate_smart_recommendations(self, verdict, sentiment: Dict, prediction: Dict) -> List[str]:
@@ -283,8 +326,10 @@ def main_ai_dashboard():
     # Load enhanced CSS
     load_enhanced_css()
 
-    # Auto-refresh with AI optimization
-    st_autorefresh(interval=15000)  # 15 seconds for real-time AI updates
+    # Auto-refresh (interval configurable in AI Settings; data is cached for
+    # DATA_TTL_SECONDS so refreshes are cheap re-renders)
+    refresh_ms = st.session_state.get("refresh_interval_ms", 15000)
+    st_autorefresh(interval=refresh_ms)
 
     # AI-powered sidebar navigation
     with st.sidebar:
@@ -309,17 +354,19 @@ def main_ai_dashboard():
 
         st.markdown("---")
 
-        # AI status indicators
+        # Engine status indicators (honest labels — there is no GPT-4 here,
+        # the engine is deterministic and signal-driven)
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("AI Status", "🟢 Online", "Active")
+            st.metric("Engine", "🟢 Online" if ECHO_ENGINE_AVAILABLE else "🔴 Missing")
         with col2:
-            st.metric("Model", "GPT-4", "Enhanced")
+            st.metric("Model", "Signals v2.1")
 
         st.markdown("---")
 
         # Quick AI actions
         if st.button("🧠 Run AI Analysis", use_container_width=True):
+            clear_data_caches()
             st.rerun()
 
         # Session info
@@ -350,23 +397,22 @@ def show_ai_overview():
         <h1>🚀 Echo AI - Neural Trading Intelligence Platform</h1>
         <p>Advanced artificial intelligence for superior market analysis and decision-making</p>
         <div class="ai-features">
-            <span>🧠 Neural Networks</span>
-            <span>📊 Deep Learning</span>
-            <span>🎯 Predictive AI</span>
-            <span>⚡ Real-time Analysis</span>
+            <span>🧠 Signal-Stack Analysis</span>
+            <span>📊 Real Price Data</span>
+            <span>🎯 Deterministic Models</span>
+            <span>⚡ Risk Intelligence</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     try:
         # Load Echo Engine
-        cfg_path = "echo/config.yaml"
         if not ECHO_ENGINE_AVAILABLE:
             st.error("❌ Echo Engine not available")
             return
 
-        eng = EchoEngine(cfg_path)
-        verdict = eng.run()
+        eng = get_engine()
+        verdict = get_verdict()
 
         # Initialize AI Engine
         ai_engine = AITradingEngine()
@@ -485,13 +531,12 @@ def show_neural_signals():
     st.header("🧠 Neural Signal Analysis")
 
     try:
-        cfg_path = "echo/config.yaml"
         if not ECHO_ENGINE_AVAILABLE:
             st.error("❌ Echo Engine not available")
             return
 
-        eng = EchoEngine(cfg_path)
-        verdict = eng.run()
+        eng = get_engine()
+        verdict = get_verdict()
 
         ai_engine = AITradingEngine()
 
@@ -549,13 +594,12 @@ def show_ai_recommendations():
     st.header("🎯 AI Recommendation Engine")
 
     try:
-        cfg_path = "echo/config.yaml"
         if not ECHO_ENGINE_AVAILABLE:
             st.error("❌ Echo Engine not available")
             return
 
-        eng = EchoEngine(cfg_path)
-        verdict = eng.run()
+        eng = get_engine()
+        verdict = get_verdict()
 
         ai_engine = AITradingEngine()
         sentiment = ai_engine.analyze_market_sentiment(verdict.signals)
@@ -589,11 +633,21 @@ def show_ai_recommendations():
         # AI Confidence Matrix
         st.subheader("📊 AI Confidence Matrix")
 
+        # All values are deterministic and signal-derived. The old risk map was
+        # keyed on labels the engine never emits ("Low"/"Medium") so it always
+        # showed 0.4, and "Market Timing" was a random number per refresh.
+        risk_confidence = {
+            "Low": 0.85, "Moderate": 0.8, "Medium": 0.6, "Elevated": 0.55, "High": 0.4
+        }.get(verdict.risk_label, 0.5)
+        timing_confidence = max(
+            (s.score for s in verdict.signals if s.name in ("Turn-of-Month", "FOMC Tilt")),
+            default=0.0
+        ) / 100.0
         confidence_data = {
             "Signal Quality": sentiment["confidence"],
-            "Prediction Accuracy": prediction["probability"],
-            "Risk Assessment": 0.85 if verdict.risk_label == "Low" else 0.6 if verdict.risk_label == "Medium" else 0.4,
-            "Market Timing": random.uniform(0.7, 0.9)  # Simulated AI timing confidence
+            "Direction Weight": prediction["probability"],
+            "Risk Assessment": risk_confidence,
+            "Timing Signals (ToM/FOMC)": timing_confidence
         }
 
         for metric, confidence in confidence_data.items():
@@ -607,42 +661,63 @@ def show_risk_intelligence():
     st.header("⚠️ AI Risk Intelligence")
 
     try:
-        cfg_path = "echo/config.yaml"
         if not ECHO_ENGINE_AVAILABLE:
             st.error("❌ Echo Engine not available")
             return
 
-        eng = EchoEngine(cfg_path)
-        verdict = eng.run()
+        eng = get_engine()
+        verdict = get_verdict()
         cfg = eng.config
         provider = eng.provider
         slots = eng.slots
 
-        ai_engine = AITradingEngine()
+        # Risk Assessment — real numbers only. Portfolio risk maps the labels
+        # the engine actually emits (the old map keyed on "Low"/"Medium",
+        # which the engine never produces); market and volatility risk are
+        # computed from the core slot's actual 3-month price history
+        # (previously both were random.uniform per refresh).
+        st.subheader("🧠 Risk Assessment Matrix")
 
-        # AI Risk Assessment
-        st.subheader("🧠 AI Risk Assessment Matrix")
+        portfolio_risk = {
+            "Low": 0.3, "Moderate": 0.4, "Medium": 0.55, "Elevated": 0.65, "High": 0.9
+        }.get(verdict.risk_label, 0.5)
 
-        # Calculate AI risk metrics
-        portfolio_risk = 0.6 if verdict.risk_label == "Low" else 0.8 if verdict.risk_label == "Medium" else 0.9
-        market_risk = random.uniform(0.4, 0.8)  # Simulated market risk
-        volatility_risk = random.uniform(0.3, 0.7)  # Simulated volatility risk
+        market_risk = None
+        volatility_risk = None
+        core_ticker = slots.get("core")
+        try:
+            hist = get_history(core_ticker, period="3mo", interval="1d")
+            close = hist["Close"].dropna()
+            if len(close) >= 21:
+                ret = close.pct_change().dropna()
+                ann_vol = float(ret.std() * (252 ** 0.5))
+                # 40%+ annualized vol on the core index slot = maximum risk
+                volatility_risk = max(0.0, min(1.0, ann_vol / 0.40))
+                # 15%+ drawdown from the 3-month high = maximum risk
+                drawdown = 1.0 - float(close.iloc[-1] / close.max())
+                market_risk = max(0.0, min(1.0, drawdown / 0.15))
+        except Exception:
+            pass
 
-        risk_metrics = {
-            "Portfolio Risk": portfolio_risk,
-            "Market Risk": market_risk,
-            "Volatility Risk": volatility_risk,
-            "AI Composite Risk": (portfolio_risk + market_risk + volatility_risk) / 3
-        }
+        risk_metrics = {"Portfolio Risk (signals)": portfolio_risk}
+        if market_risk is not None:
+            risk_metrics[f"Market Risk ({core_ticker} 3mo drawdown)"] = market_risk
+        if volatility_risk is not None:
+            risk_metrics[f"Volatility Risk ({core_ticker} realized)"] = volatility_risk
+        risk_metrics["Composite Risk"] = sum(risk_metrics.values()) / len(risk_metrics)
+
+        if market_risk is None:
+            st.warning(f"⚠️ Price data for {core_ticker} unavailable — market and "
+                       f"volatility risk are not shown (nothing is simulated in their place).")
 
         for metric, risk in risk_metrics.items():
             color = "🟢" if risk < 0.5 else "🟡" if risk < 0.7 else "🔴"
             st.metric(f"{color} {metric}", f"{risk:.1%}")
 
-        # AI Risk Recommendations
-        st.subheader("🎯 AI Risk Mitigation Strategies")
+        # Risk Recommendations
+        st.subheader("🎯 Risk Mitigation Strategies")
 
-        if risk_metrics["AI Composite Risk"] > 0.7:
+        if risk_metrics["Composite Risk"] > 0.7:
             st.error("🚨 AI HIGH RISK ALERT: Implement defensive measures immediately")
             st.markdown("""
             - Reduce position sizes by 20-30%
@@ -650,7 +725,7 @@ def show_risk_intelligence():
             - Diversify across uncorrelated assets
             - Monitor news and economic indicators closely
             """)
-        elif risk_metrics["AI Composite Risk"] > 0.5:
+        elif risk_metrics["Composite Risk"] > 0.5:
             st.warning("⚠️ AI MODERATE RISK: Exercise caution")
             st.markdown("""
             - Maintain current position sizes
@@ -675,13 +750,12 @@ def show_predictive_analytics():
     st.header("🔮 AI Predictive Analytics")
 
     try:
-        cfg_path = "echo/config.yaml"
         if not ECHO_ENGINE_AVAILABLE:
             st.error("❌ Echo Engine not available")
             return
 
-        eng = EchoEngine(cfg_path)
-        verdict = eng.run()
+        eng = get_engine()
+        verdict = get_verdict()
 
         ai_engine = AITradingEngine()
         prediction = ai_engine.predict_market_direction({"signals": verdict.signals})
@@ -689,42 +763,42 @@ def show_predictive_analytics():
         # AI Prediction Dashboard
         st.subheader("🎯 AI Market Predictions")
 
-        # Prediction confidence gauge
+        # Prediction gauge
         st.markdown(f"""
         <div style='text-align: center; margin: 2rem 0;'>
             <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 20px;'>
                 <h2>{prediction["direction"].replace("_", " ").title()}</h2>
-                <h3>{prediction["probability"]:.1%} Confidence</h3>
-                <p>Timeframe: {prediction["timeframe"]}</p>
+                <h3>{prediction["probability"]:.1%} Direction Weight</h3>
+                <p>Timeframe: {prediction["timeframe"]} — 50% = no directional evidence</p>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        # AI Insights
-        st.subheader("🧠 AI Market Insights")
+        # Insights — describe what the numbers actually are
+        st.subheader("🧠 Prediction Basis")
 
+        warnings_active = len([s for s in verdict.signals if s.severity in ("yellow", "red")])
         insights = [
-            f"Neural network analysis indicates {prediction['direction']} with high confidence",
-            f"Pattern recognition algorithms support {prediction['timeframe']} outlook",
-            f"Sentiment analysis shows {'positive' if prediction['probability'] > 0.6 else 'cautious'} market mood",
-            f"Risk-adjusted models suggest {'favorable' if prediction['probability'] > 0.5 else 'challenging'} conditions"
+            f"Outlook is a deterministic read of the current Echo signal stack: "
+            f"{prediction['ai_insight']}",
+            f"Composite conviction from the Echo engine: {verdict.composite:.0f}/100",
+            f"Active warnings (yellow/red): {warnings_active} of {len(verdict.signals)} signals",
+            f"Engine risk label: {verdict.risk_label}"
         ]
 
         for insight in insights:
             st.info(f"💡 {insight}")
 
-        # Predictive metrics
+        # Honesty over theater: there is no forecast-accuracy tracking yet, so
+        # no accuracy numbers are shown. (This section previously displayed
+        # random.uniform values labeled "Model Accuracy" etc.)
         st.subheader("📊 Predictive Performance Metrics")
-
-        metrics = {
-            "Model Accuracy": random.uniform(0.75, 0.85),
-            "Signal Precision": random.uniform(0.7, 0.9),
-            "Risk Prediction": random.uniform(0.65, 0.8),
-            "Timing Accuracy": random.uniform(0.7, 0.85)
-        }
-
-        for metric, value in metrics.items():
-            st.metric(metric, f"{value:.1%}")
+        st.info(
+            "ℹ️ Forecast accuracy is not tracked yet — this outlook is a heuristic "
+            "signal read, not a backtested model, so no accuracy figures are shown. "
+            "Treat the direction weight as a summary of today's signals, not a "
+            "verified edge."
+        )
 
     except Exception as e:
         st.error(f"❌ AI Predictive Analytics Error: {str(e)}")
@@ -738,13 +812,19 @@ def show_ai_settings():
     # AI parameters
     col1, col2 = st.columns(2)
 
+    freq_map = {"5s": 5000, "15s": 15000, "30s": 30000, "1m": 60000, "5m": 300000}
+    current_ms = st.session_state.get("refresh_interval_ms", 15000)
+    freq_values = list(freq_map.values())
+    freq_index = freq_values.index(current_ms) if current_ms in freq_values else 1
+
     with col1:
-        confidence_threshold = st.slider("AI Confidence Threshold", 0.5, 0.95, 0.75, 0.05)
-        risk_tolerance = st.slider("Risk Tolerance", 0.1, 1.0, 0.6, 0.1)
+        confidence_threshold = st.slider("AI Confidence Threshold", 0.5, 0.95, 0.75, 0.05, disabled=True)
+        risk_tolerance = st.slider("Risk Tolerance", 0.1, 1.0, 0.6, 0.1, disabled=True)
+        st.caption("These model parameters are not yet configurable from the UI.")
 
     with col2:
-        update_frequency = st.selectbox("Update Frequency", ["5s", "15s", "30s", "1m", "5m"], index=1)
-        model_version = st.selectbox("AI Model Version", ["GPT-4 Enhanced v2.1", "GPT-4 Standard", "Custom Model"], index=0)
+        update_frequency = st.selectbox("Update Frequency", list(freq_map.keys()), index=freq_index)
+        model_version = st.selectbox("AI Model Version", ["Echo Signal Engine v2.1"], index=0, disabled=True)
 
     # AI Feature toggles
     st.subheader("🎛️ AI Feature Controls")
@@ -763,14 +843,18 @@ def show_ai_settings():
 
     # System information
     st.subheader("ℹ️ AI System Information")
-    st.info(f"**AI Engine Version:** Echo Neural Intelligence v3.0")
+    st.info(f"**Engine Version:** Echo v3.0 (deterministic, signal-driven)")
     st.info(f"**Model:** {model_version}")
     st.info(f"**Last Updated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    st.info("**Status:** 🟢 All Systems Operational")
 
     if st.button("🔄 Update AI Settings"):
-        st.success("✅ AI settings updated successfully!")
+        st.session_state["refresh_interval_ms"] = freq_map[update_frequency]
         st.rerun()
+
+    st.caption(
+        f"Current auto-refresh: every {current_ms // 1000}s. Market data is cached "
+        f"for {DATA_TTL_SECONDS // 60} minutes regardless of refresh rate."
+    )
 
 # ==================== ENHANCED CSS ====================
 def load_enhanced_css():

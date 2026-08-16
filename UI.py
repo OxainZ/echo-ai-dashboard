@@ -54,6 +54,29 @@ def check_password():
         # Password correct.
         return True
 
+# ==================== CACHED DATA ACCESS ====================
+CFG_PATH = "echo/config.yaml"
+# Signals run on daily bars — refetching more often than this only hits
+# Yahoo rate limits. Before caching, every 5s autorefresh re-ran the whole
+# engine (network fetch included) and every tab refetched history per render.
+DATA_TTL_SECONDS = 300
+
+@st.cache_resource(show_spinner=False)
+def get_engine() -> EchoEngine:
+    return EchoEngine(CFG_PATH)
+
+@st.cache_data(ttl=DATA_TTL_SECONDS, show_spinner="Running Echo engine...")
+def get_verdict():
+    return get_engine().run()
+
+@st.cache_data(ttl=DATA_TTL_SECONDS, show_spinner=False)
+def get_history(ticker: str, period: str = "3mo", interval: str = "1d") -> pd.DataFrame:
+    return get_engine().provider.history(ticker, period=period, interval=interval)
+
+def clear_data_caches():
+    get_verdict.clear()
+    get_history.clear()
+
 # ==================== CUSTOM CSS STYLING ====================
 def load_css():
     st.markdown("""
@@ -154,8 +177,10 @@ def main_dashboard():
     # Load custom CSS
     load_css()
 
-    # Auto-refresh dashboard every 5 seconds
-    st_autorefresh(interval=5000)
+    # Auto-refresh dashboard (interval configurable in Settings; data itself
+    # is cached for DATA_TTL_SECONDS, so refreshes are cheap re-renders)
+    refresh_ms = st.session_state.get("refresh_interval_ms", 30000)
+    st_autorefresh(interval=refresh_ms)
 
     # Sidebar with navigation and settings
     with st.sidebar:
@@ -186,10 +211,15 @@ def main_dashboard():
 
         st.markdown("---")
         if st.button("🔄 Manual Refresh", use_container_width=True):
+            clear_data_caches()
             st.rerun()
 
-        # Last update indicator
-        st.caption(f"📅 Last updated: {datetime.now().strftime('%H:%M:%S')}")
+        # Last update indicator: show when the DATA was computed, not the
+        # render time — a render-time clock made stale data look fresh.
+        if 'verdict' in st.session_state:
+            st.caption(f"📅 Data as of: {st.session_state.verdict.asof}")
+        else:
+            st.caption(f"📅 Rendered: {datetime.now().strftime('%H:%M:%S')}")
 
     # Main content based on navigation
     if menu == "Dashboard Overview":
@@ -218,19 +248,13 @@ def show_overview():
 
     # Load data
     try:
-        cfg_path = "echo/config.yaml"
-        eng = EchoEngine(cfg_path)
-        verdict = eng.run()
+        eng = get_engine()
+        verdict = get_verdict()
         cfg = eng.config
-        provider = eng.provider
         slots = eng.slots
-        now = datetime.now()
 
-        # Store in session state for other tabs
+        # Store in session state for the sidebar quick stats
         st.session_state.verdict = verdict
-        st.session_state.cfg = cfg
-        st.session_state.provider = provider
-        st.session_state.slots = slots
 
         # Enhanced metrics display
         col1, col2, col3, col4 = st.columns(4)
@@ -303,6 +327,20 @@ def show_overview():
         with col3:
             st.metric("Wildcard Position", allocations.get('Wildcard', 'N/A'))
 
+        # Warn when the config calendar has gone stale. Calendar-driven signals
+        # (FOMC Tilt, PEAD) silently read as "no signal" once every date is in
+        # the past, which looks identical to a genuinely quiet market.
+        cal = cfg.get("calendar", {})
+        cal_dates = [parser.parse(d).date() for d in cal.get("fomc_dates", [])]
+        cal_dates += [parser.parse(d).date() for d in cal.get("earnings", {}).values()]
+        if cal_dates and max(cal_dates) < datetime.now().date():
+            st.warning(
+                f"⚠️ Every calendar date in echo/config.yaml is in the past "
+                f"(latest: {max(cal_dates).isoformat()}). FOMC and PEAD signals are "
+                f"running on a stale calendar — update `calendar.fomc_dates` / "
+                f"`calendar.earnings` to re-arm them."
+            )
+
     except Exception as e:
         st.error(f"❌ Error loading dashboard data: {str(e)}")
         st.info("🔧 Please check your configuration and data connections.")
@@ -311,11 +349,12 @@ def show_signals():
     """Enhanced signal analysis section"""
     st.header("📡 Signal Analysis Dashboard")
 
-    if 'verdict' not in st.session_state:
-        st.warning("⚠️ Please load the overview first to see signals.")
+    try:
+        verdict = get_verdict()
+        st.session_state.verdict = verdict
+    except Exception as e:
+        st.error(f"❌ Could not load signals: {e}")
         return
-
-    verdict = st.session_state.verdict
 
     # Signal summary
     total_signals = len(verdict.signals)
@@ -366,12 +405,13 @@ def show_portfolio():
     """Portfolio management section"""
     st.header("💼 Portfolio Management")
 
-    if 'verdict' not in st.session_state:
-        st.warning("⚠️ Please load the overview first.")
+    try:
+        verdict = get_verdict()
+        slots = get_engine().slots
+        st.session_state.verdict = verdict
+    except Exception as e:
+        st.error(f"❌ Could not load portfolio data: {e}")
         return
-
-    verdict = st.session_state.verdict
-    slots = st.session_state.slots
 
     # Current positions
     st.subheader("📊 Current Positions")
@@ -387,14 +427,15 @@ def show_risk_analytics():
     """Risk analytics section"""
     st.header("⚠️ Risk Analytics Dashboard")
 
-    if 'verdict' not in st.session_state:
-        st.warning("⚠️ Please load the overview first.")
+    try:
+        eng = get_engine()
+        verdict = get_verdict()
+        cfg = eng.config
+        slots = eng.slots
+        st.session_state.verdict = verdict
+    except Exception as e:
+        st.error(f"❌ Could not load risk analytics: {e}")
         return
-
-    verdict = st.session_state.verdict
-    cfg = st.session_state.cfg
-    provider = st.session_state.provider
-    slots = st.session_state.slots
 
     # Risk heatmap
     st.subheader("🔥 Risk/Reward Heatmap")
@@ -405,7 +446,7 @@ def show_risk_analytics():
 
         for label, tk in slots.items():
             try:
-                df = provider.history(tk, period="3mo", interval="1d")
+                df = get_history(tk, period="3mo", interval="1d")
                 if df is None or df.empty:
                     continue
                 ret = df["Close"].pct_change()
@@ -456,6 +497,8 @@ def show_risk_analytics():
                 st.metric("Medium Risk Positions", med_risk)
             with col3:
                 st.metric("Low Risk Positions", low_risk)
+        else:
+            st.info("📭 No price data available for any slot right now — heatmap cannot be computed.")
 
     except Exception as e:
         st.error(f"❌ Error loading risk analytics: {str(e)}")
@@ -464,12 +507,11 @@ def show_historical():
     """Historical performance section"""
     st.header("📈 Historical Performance")
 
-    if 'provider' not in st.session_state:
-        st.warning("⚠️ Please load the overview first.")
+    try:
+        slots = get_engine().slots
+    except Exception as e:
+        st.error(f"❌ Could not load configuration: {e}")
         return
-
-    provider = st.session_state.provider
-    slots = st.session_state.slots
 
     st.subheader("📊 Price Performance (3 Months)")
 
@@ -479,7 +521,7 @@ def show_historical():
     for i, (slot_name, ticker) in enumerate(slots.items()):
         with tabs[i]:
             try:
-                df = provider.history(ticker, period="3mo", interval="1d")
+                df = get_history(ticker, period="3mo", interval="1d")
                 if df is not None and not df.empty:
                     # Calculate returns
                     df['Daily Return'] = df['Close'].pct_change()
@@ -504,8 +546,12 @@ def show_historical():
                         st.metric("Annual Volatility", f"{volatility:.1f}%")
 
                     with stats_col2:
-                        sharpe = (df['Daily Return'].mean() * 252) / (df['Daily Return'].std() * np.sqrt(252))
-                        st.metric("Sharpe Ratio", f"{sharpe:.2f}")
+                        ret_std = df['Daily Return'].std()
+                        if ret_std and not np.isnan(ret_std) and ret_std > 0:
+                            sharpe = (df['Daily Return'].mean() * 252) / (ret_std * np.sqrt(252))
+                            st.metric("Sharpe Ratio", f"{sharpe:.2f}")
+                        else:
+                            st.metric("Sharpe Ratio", "N/A")
 
                     with stats_col3:
                         max_drawdown = ((df['Close'] - df['Close'].expanding().max()) / df['Close'].expanding().max()).min() * 100
@@ -523,7 +569,9 @@ def show_settings():
 
     st.subheader("🔧 Dashboard Settings")
 
-    # Refresh interval setting
+    # Refresh interval setting — actually wired to st_autorefresh via
+    # session_state (previously this selectbox did nothing and "Apply
+    # Settings" claimed success without applying anything).
     refresh_options = {
         "5 seconds": 5000,
         "10 seconds": 10000,
@@ -532,15 +580,25 @@ def show_settings():
         "5 minutes": 300000
     }
 
+    current_ms = st.session_state.get("refresh_interval_ms", 30000)
+    option_values = list(refresh_options.values())
+    current_index = option_values.index(current_ms) if current_ms in option_values else 2
+
     selected_refresh = st.selectbox(
         "Auto-refresh interval",
         options=list(refresh_options.keys()),
-        index=0
+        index=current_index
     )
 
     if st.button("Apply Settings"):
-        st.success("✅ Settings updated successfully!")
+        st.session_state["refresh_interval_ms"] = refresh_options[selected_refresh]
         st.rerun()
+
+    st.caption(
+        f"Current auto-refresh: every {current_ms // 1000}s. "
+        f"Market data is cached for {DATA_TTL_SECONDS // 60} minutes regardless of "
+        f"refresh rate (signals run on daily bars)."
+    )
 
     st.markdown("---")
 
@@ -550,10 +608,20 @@ def show_settings():
     st.info(f"**Last Updated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     st.info("**Data Provider:** Yahoo Finance API")
 
-    # Export functionality
+    # Export functionality — a real download of the daily report (previously
+    # the button claimed "exported successfully" without exporting anything).
     st.subheader("📤 Export Data")
-    if st.button("Export Current Analysis"):
-        st.success("✅ Analysis data exported successfully!")
+    try:
+        verdict = get_verdict()
+        report_md = format_daily(verdict)
+        st.download_button(
+            "⬇️ Download Daily Report (Markdown)",
+            data=report_md,
+            file_name=f"echo_daily_{datetime.now().strftime('%Y-%m-%d')}.md",
+            mime="text/markdown",
+        )
+    except Exception as e:
+        st.error(f"❌ Cannot build export: {e}")
 
 # ==================== MAIN APP EXECUTION ====================
 if __name__ == "__main__":
