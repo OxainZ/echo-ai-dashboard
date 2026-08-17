@@ -258,7 +258,15 @@ def check_ai_powered_authentication():
 
     def password_entered():
         """AI-powered password verification"""
-        if hashlib.sha256(st.session_state["password"].encode()).hexdigest() == st.secrets.get("password_hash", hashlib.sha256("echo2024".encode()).hexdigest()):
+        expected = st.secrets.get("password_hash", "")
+        if not expected:
+            # FAIL CLOSED: no password_hash secret configured -> nobody logs in.
+            # The old fallback accepted a publicly-known default (it was
+            # committed to this public repo), which is no auth at all.
+            st.session_state["password_correct"] = False
+            st.error("Locked: no password_hash configured in Streamlit secrets.")
+            return
+        if hashlib.sha256(st.session_state["password"].encode()).hexdigest() == expected:
             st.session_state["password_correct"] = True
             st.session_state["login_time"] = datetime.now()
             st.session_state["session_id"] = hashlib.md5(f"{datetime.now()}{random.random()}".encode()).hexdigest()

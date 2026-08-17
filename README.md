@@ -105,10 +105,10 @@ A comprehensive, professional-grade trading intelligence platform featuring real
 
 2. **Configure Secrets** (in Streamlit Cloud dashboard)
    ```toml
-   password_hash = "cf509bdfa8fc4d619d83421b13a6cca3e8b0119d26a16696162b29228b6a0758"
+   password_hash = "<sha256 of YOUR password - see .streamlit/secrets.toml.example>"
    ```
 
-3. **Default Access Code**: `echo2024`
+3. **Access Code**: set your own via `password_hash` (no default - the app fails closed without one)
 
 ### **Local Development**
 
@@ -125,9 +125,9 @@ A comprehensive, professional-grade trading intelligence platform featuring real
 
 3. **Configure Environment**
    ```bash
-   # Copy and edit secrets
-   cp .streamlit/secrets.toml .streamlit/secrets.toml.local
-   # Edit password_hash as needed
+   # Copy the example and set your own password hash
+   cp .streamlit/secrets.toml.example .streamlit/secrets.toml
+   # (deployed app: set password_hash in the Streamlit Cloud Secrets UI instead)
    ```
 
 4. **Run Application**
