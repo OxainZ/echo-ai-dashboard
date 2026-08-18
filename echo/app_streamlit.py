@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from dateutil import parser
 from echo.engine.echo_engine import EchoEngine
 from echo.engine.reports import format_daily
+from echo.utils.dates import calendar_staleness_message
 
 st.set_page_config(page_title="Echo v62 — Local Runner (PLUS)", layout="wide")
 
@@ -110,12 +111,11 @@ for tk, ds in cal.get("earnings", {}).items():
 if countdown_rows:
     cdf = pd.DataFrame(countdown_rows).sort_values("Days")
     st.dataframe(cdf, use_container_width=True)
-    if all(r["Days"] < 0 for r in countdown_rows):
-        st.warning("⚠️ Every catalyst date in config.yaml is in the past — FOMC/PEAD "
-                   "signals are running on a stale calendar. Update calendar.fomc_dates "
-                   "/ calendar.earnings to re-arm them.")
 else:
     st.info("No catalysts listed in config.yaml")
+_cal_warning = calendar_staleness_message(cfg)
+if _cal_warning:
+    st.warning(f"⚠️ {_cal_warning}")
 
 # 3) Risk/Reward Heatmap (simple proxy: 20d momentum vs 20d volatility on slots)
 st.subheader("Risk/Reward Heatmap")

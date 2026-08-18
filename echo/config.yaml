@@ -32,7 +32,26 @@ providers:
     name: yfinance
 
 calendar:
-  fomc_dates: ["2025-09-17"]
+  # FOMC DECISION days (the 2nd/final day of each meeting — the statement drops
+  # ~14:00 ET that day; FOMCTilt fires the day BEFORE each date listed here).
+  # Source: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
+  # (verified 2026-08-18). Remaining 2026 meetings + all announced 2027 meetings.
+  fomc_dates:
+    - "2026-09-16"   # Sep 15-16, 2026 (SEP)
+    - "2026-10-28"   # Oct 27-28, 2026
+    - "2026-12-09"   # Dec 8-9, 2026 (SEP)
+    - "2027-01-27"   # Jan 26-27, 2027
+    - "2027-03-17"   # Mar 16-17, 2027 (SEP)
+    - "2027-04-28"   # Apr 27-28, 2027
+    - "2027-06-09"   # Jun 8-9, 2027 (SEP)
+    - "2027-07-28"   # Jul 27-28, 2027
+    - "2027-09-15"   # Sep 14-15, 2027 (SEP)
+    - "2027-10-27"   # Oct 26-27, 2027
+    - "2027-12-08"   # Dec 7-8, 2027 (SEP)
+  # Earnings dates are fetched live from yfinance at signal time; the entries
+  # below are only an OFFLINE FALLBACK. When the live fetch fails AND the
+  # fallback date is stale, the PEAD signal says so explicitly instead of
+  # silently reading "no signal".
   earnings:
     AMZN: "2025-10-29"
     TSLA: "2025-10-15"
