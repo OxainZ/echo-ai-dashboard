@@ -10,19 +10,35 @@ from echo.engine.reports import format_daily
 
 st.set_page_config(page_title="Echo v62 — Local Runner (PLUS)", layout="wide")
 
-# Auto-refresh dashboard every 5 seconds
-st_autorefresh(interval=5000)
+# Auto-refresh dashboard every 30 seconds. Data is cached below for 5 minutes:
+# signals run on daily bars, and the previous 5s uncached refresh re-ran the
+# engine plus ~10 yfinance history fetches per rerun (rate-limit bait).
+st_autorefresh(interval=30000)
 
 st.title("Echo v62 — Local Runner (PLUS)")
 st.caption("Local, privacy-first dashboard. Research & decision support only — no trading automation.")
 
 cfg_path = "echo/config.yaml"
-eng = EchoEngine(cfg_path)
-verdict = eng.run()
+DATA_TTL_SECONDS = 300
+
+@st.cache_resource(show_spinner=False)
+def _get_engine() -> EchoEngine:
+    return EchoEngine(cfg_path)
+
+@st.cache_data(ttl=DATA_TTL_SECONDS, show_spinner="Running Echo engine...")
+def _get_verdict():
+    return _get_engine().run()
+
+@st.cache_data(ttl=DATA_TTL_SECONDS, show_spinner=False)
+def _get_history(ticker: str, period: str = "3mo", interval: str = "1d"):
+    return _get_engine().provider.history(ticker, period=period, interval=interval)
+
+eng = _get_engine()
+verdict = _get_verdict()
 cfg = eng.config
-provider = eng.provider
 slots = eng.slots
 now = datetime.now()
+st.caption(f"Data as of: {verdict.asof} (cached up to {DATA_TTL_SECONDS // 60} min)")
 
 # Top metrics
 col1, col2, col3 = st.columns(3)
@@ -82,7 +98,6 @@ else:
 st.subheader("Catalyst Countdown")
 cal = cfg.get("calendar", {})
 countdown_rows = []
-# HOW DO I D
 for d in cal.get("fomc_dates", []):
     dd = parser.parse(d)
     days = (dd.date() - datetime.now().date()).days
@@ -95,6 +110,10 @@ for tk, ds in cal.get("earnings", {}).items():
 if countdown_rows:
     cdf = pd.DataFrame(countdown_rows).sort_values("Days")
     st.dataframe(cdf, use_container_width=True)
+    if all(r["Days"] < 0 for r in countdown_rows):
+        st.warning("⚠️ Every catalyst date in config.yaml is in the past — FOMC/PEAD "
+                   "signals are running on a stale calendar. Update calendar.fomc_dates "
+                   "/ calendar.earnings to re-arm them.")
 else:
     st.info("No catalysts listed in config.yaml")
 
@@ -105,7 +124,7 @@ rr_cfg = cfg.get("rr_heatmap",{})
 rr_rows = []
 for label, tk in slots.items():
     try:
-        df = provider.history(tk, period="3mo", interval="1d")
+        df = _get_history(tk, period="3mo", interval="1d")
         if df is None or df.empty: 
             continue
         ret = df["Close"].pct_change()
@@ -140,7 +159,7 @@ st.subheader("Sector Flow Scanner (5d Change)")
 flows = []
 for name, etf in cfg.get("sector_etfs", {}).items():
     try:
-        df = provider.history(etf, period="2mo", interval="1d")
+        df = _get_history(etf, period="2mo", interval="1d")
         if df is None or df.empty or len(df)<6:
             continue
         c = df["Close"]

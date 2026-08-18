@@ -39,7 +39,6 @@ fileWatcherType = "auto"
 # Symmetric key used to produce signed cookies. If deploying on multiple replicas,
 # this should be set to the same value across all replicas to ensure they all
 # share the same secret.
-cookieSecret = "a-random-key-appears-here"
 
 # If false, will attempt to open a new browser tab on the local development
 # machine when `streamlit run` is called.

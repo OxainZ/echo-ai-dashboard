@@ -42,3 +42,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+# env + local secrets (never commit)
+.env
+.env.*
+.streamlit/secrets.toml

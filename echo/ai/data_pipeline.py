@@ -104,11 +104,16 @@ class DataPipeline:
             (df['Low'] - prev_close).abs()
         ], axis=1).max(axis=1)
         
-        # Normalize volume (z-score)
+        # Normalize volume (z-score). Where the 20-day window has zero
+        # variance, 0/0 made every row NaN and the later dropna() silently
+        # emptied the whole frame — a constant-volume stretch broke the entire
+        # prediction path with an IndexError. Zero variance means volume is at
+        # its window mean, so the z-score is 0.
         volume_mean = df['Volume'].rolling(window=20).mean()
         volume_std = df['Volume'].rolling(window=20).std()
         df['Volume_Normalized'] = (df['Volume'] - volume_mean) / volume_std
-        
+        df.loc[volume_std == 0, 'Volume_Normalized'] = 0.0
+
         return df
     
     def engineer_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -170,7 +175,15 @@ class DataPipeline:
         
         # Drop NaN values from feature engineering
         df = df.dropna()
-        
+
+        if df.empty:
+            # Fail loudly with a message the UI can display — an empty frame
+            # here previously surfaced as a bare IndexError downstream.
+            raise ValueError(
+                f"Not enough clean history for {ticker} to compute features "
+                f"(rolling windows need ~20+ trading days beyond warm-up)"
+            )
+
         return df
     
     def get_current_price(self, ticker: str) -> Dict:
