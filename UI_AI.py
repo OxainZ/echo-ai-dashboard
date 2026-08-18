@@ -11,9 +11,9 @@ from streamlit_autorefresh import st_autorefresh
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-from dateutil import parser
 from echo.engine.echo_engine import EchoEngine
 from echo.engine.reports import format_daily
+from echo.utils.dates import calendar_staleness_message
 from echo.ai import (
     StockPricePredictor,
     TradingDecisionEngine,
@@ -311,19 +311,11 @@ def show_overview_with_ai():
         if len(stacked_edges) >= 2:
             st.error("🚨 **CATALYST STACKING ALERT**: Multiple critical signals detected!")
 
-        # Warn when the config calendar has gone stale — calendar-driven
-        # signals (FOMC, PEAD) silently read as "no signal" once every date
-        # is in the past, which looks identical to a quiet market.
-        cal = cfg.get("calendar", {})
-        cal_dates = [parser.parse(d).date() for d in cal.get("fomc_dates", [])]
-        cal_dates += [parser.parse(d).date() for d in cal.get("earnings", {}).values()]
-        if cal_dates and max(cal_dates) < datetime.now().date():
-            st.warning(
-                f"⚠️ Every calendar date in echo/config.yaml is in the past "
-                f"(latest: {max(cal_dates).isoformat()}). FOMC and PEAD signals are "
-                f"running on a stale calendar — update `calendar.fomc_dates` / "
-                f"`calendar.earnings` to re-arm them."
-            )
+        # Warn when the config calendar has gone stale (shared generic check:
+        # each calendar section's latest date vs today).
+        cal_warning = calendar_staleness_message(cfg)
+        if cal_warning:
+            st.warning(f"⚠️ {cal_warning}")
 
     except Exception as e:
         st.error(f"❌ Error loading dashboard: {str(e)}")
